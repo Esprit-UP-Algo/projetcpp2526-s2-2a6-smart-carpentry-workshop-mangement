@@ -82,15 +82,30 @@ QTableView {
 QHeaderView::section {
     background-color: #5D4037;
     color: white;
-}</string>
+}
+QPushButton:hover {
+     background-color: #795548;
+ }
+ QPushButton#btn_supprimer_action {
+     background-color: #5D4037;
+ }
+ QPushButton#btn_modifier_save {
+     background-color: #5D4037;
+ }
+ QPushButton#btn_export_pdf {
+     background-color: #5D4037;
+ }
+ QPushButton#btn_rechercher, QPushButton#btn_trier {
+     background-color: #5D4037;
+ }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>380</x>
+      <x>340</x>
       <y>0</y>
-      <width>411</width>
+      <width>451</width>
       <height>51</height>
      </rect>
     </property>
@@ -102,7 +117,7 @@ QHeaderView::section {
      </font>
     </property>
     <property name="text">
-     <string>WoodPilot - Bois </string>
+     <string>gestion de sociéte</string>
     </property>
    </widget>
    <widget class="QWidget" name="menu_amis" native="true">
@@ -114,13 +129,13 @@ QHeaderView::section {
       <height>561</height>
      </rect>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>5</x>
        <y>73</y>
        <width>130</width>
-       <height>245</height>
+       <height>246</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -152,7 +167,7 @@ QHeaderView::section {
     border: 1px solid #3E2723;</string>
         </property>
         <property name="text">
-         <string>Modèle</string>
+         <string>fabrication</string>
         </property>
        </widget>
       </item>
@@ -202,7 +217,7 @@ QHeaderView::section {
     border: 1px solid #3E2723;</string>
         </property>
         <property name="text">
-         <string>Fabrication</string>
+         <string>modele</string>
         </property>
        </widget>
       </item>
@@ -221,7 +236,7 @@ QHeaderView::section {
     <property name="styleSheet">
      <string notr="true">background-color: transparent;</string>
     </property>
-    <widget class="QWidget" name="page_3"/>
+    <widget class="QWidget" name="sqx"/>
     <widget class="QWidget" name="page_4"/>
     <widget class="QWidget" name="page">
      <widget class="QTabWidget" name="tabBois">
@@ -571,7 +586,7 @@ QHeaderView::section {
           <rect>
            <x>184</x>
            <y>368</y>
-           <width>51</width>
+           <width>88</width>
            <height>29</height>
           </rect>
          </property>
@@ -589,7 +604,7 @@ QHeaderView::section {
           <rect>
            <x>249</x>
            <y>368</y>
-           <width>51</width>
+           <width>88</width>
            <height>29</height>
           </rect>
          </property>
@@ -607,7 +622,7 @@ QHeaderView::section {
           <rect>
            <x>184</x>
            <y>403</y>
-           <width>51</width>
+           <width>88</width>
            <height>29</height>
           </rect>
          </property>
@@ -1162,7 +1177,544 @@ QHeaderView::section {
       </widget>
      </widget>
     </widget>
-    <widget class="QWidget" name="page_2"/>
+    <widget class="QWidget" name="page_7"/>
+    <widget class="QWidget" name="page_6">
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="QTabWidget" name="tabWidget_modeles">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_gestion">
+         <attribute name="title">
+          <string>➕ Ajouter</string>
+         </attribute>
+         <layout class="QVBoxLayout">
+          <item>
+           <widget class="QGroupBox" name="groupBox">
+            <property name="title">
+             <string>Saisie Nouveau Modèle</string>
+            </property>
+            <layout class="QFormLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>ID_Modèle:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="le_id"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Nom:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="le_nom"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Type:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="le_type"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Type de bois:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QComboBox" name="combo_bois">
+               <item>
+                <property name="text">
+                 <string>Chêne</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Hêtre</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Pin</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Noyer</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Frêne</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Érable</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Teck</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Autre...</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Longueur (cm):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLineEdit" name="le_longueur"/>
+             </item>
+             <item row="5" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Largeur (cm):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLineEdit" name="le_largeur"/>
+             </item>
+             <item row="6" column="0">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Hauteur (cm):</string>
+               </property>
+              </widget>
+             </item>
+             <item row="6" column="1">
+              <widget class="QLineEdit" name="le_hauteur"/>
+             </item>
+             <item row="7" column="1">
+              <widget class="QPushButton" name="btn_ajouter">
+               <property name="text">
+                <string>Enregistrer Modèle</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_avance">
+         <attribute name="title">
+          <string>📋 Liste</string>
+         </attribute>
+         <layout class="QVBoxLayout">
+          <item>
+           <layout class="QHBoxLayout">
+            <item>
+             <widget class="QLineEdit" name="le_recherche">
+              <property name="placeholderText">
+               <string>nom, type, ID, bois...</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_rechercher">
+              <property name="text">
+               <string>Rechercher</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_trier">
+              <property name="text">
+               <string>Trier</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_export_tous_pdf">
+              <property name="text">
+               <string>Exporter toute la liste en PDF</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTableWidget" name="table_modeles">
+            <column>
+             <property name="text">
+              <string>ID</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Nom</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Type</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Bois</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Longueur (cm)</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Largeur (cm)</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Hauteur (cm)</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <!-- TAB MODIFIER -->
+                     <widget class="QWidget" name="tab_modifier">
+                      <attribute name="title">
+                       <string>✏️ Modifier</string>
+                      </attribute>
+                      <layout class="QVBoxLayout">
+                       <item>
+                        <widget class="QGroupBox" name="groupModif">
+                         <property name="title">
+                          <string>Modifier un Modèle Existant</string>
+                         </property>
+                         <layout class="QFormLayout">
+                          <item row="0" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>ID à rechercher:</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="0" column="1">
+                           <layout class="QHBoxLayout">
+                            <item>
+                             <widget class="QLineEdit" name="le_mod_search"/>
+                            </item>
+                            <item>
+                             <widget class="QPushButton" name="btn_charger">
+                              <property name="text">
+                               <string>🔍 Charger</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </item>
+                          <item row="1" column="0">
+                           <widget class="Line">
+                            <property name="orientation">
+                             <enum>Qt::Horizontal</enum>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Nouveau Nom:</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="2" column="1">
+                           <widget class="QLineEdit" name="le_mod_nom"/>
+                          </item>
+                          <item row="3" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Nouveau Type:</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="3" column="1">
+                           <widget class="QLineEdit" name="le_mod_type"/>
+                          </item>
+                          <item row="4" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Type de bois:</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="4" column="1">
+                           <widget class="QComboBox" name="combo_mod_bois">
+                            <item>
+                             <property name="text">
+                              <string>Chêne</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Hêtre</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Pin</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Noyer</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Frêne</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Érable</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Teck</string>
+                             </property>
+                            </item>
+                            <item>
+                             <property name="text">
+                              <string>Autre...</string>
+                             </property>
+                            </item>
+                           </widget>
+                          </item>
+                          <item row="5" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Nouvelle Longueur (cm):</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="5" column="1">
+                           <widget class="QLineEdit" name="le_mod_longueur"/>
+                          </item>
+                          <item row="6" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Nouvelle Largeur (cm):</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="6" column="1">
+                           <widget class="QLineEdit" name="le_mod_largeur"/>
+                          </item>
+                          <item row="7" column="0">
+                           <widget class="QLabel">
+                            <property name="text">
+                             <string>Nouvelle Hauteur (cm):</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item row="7" column="1">
+                           <widget class="QLineEdit" name="le_mod_hauteur"/>
+                          </item>
+                          <item row="8" column="1">
+                           <widget class="QPushButton" name="btn_modifier_save">
+                            <property name="text">
+                             <string>💾 Sauvegarder les modifications</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </widget>
+                       </item>
+                      </layout>
+                     </widget>
+                     <!-- TAB SUPPRIMER -->
+                                   <widget class="QWidget" name="tab_suppression">
+                                    <attribute name="title">
+                                     <string>🗑️ Supprimer</string>
+                                    </attribute>
+                                    <layout class="QVBoxLayout">
+                                     <item>
+                                      <widget class="QGroupBox" name="groupSuppr">
+                                       <property name="title">
+                                        <string>Supprimer un Modèle</string>
+                                       </property>
+                                       <layout class="QVBoxLayout">
+                                        <item>
+                                         <widget class="QLabel">
+                                          <property name="text">
+                                           <string>ID du modèle à supprimer :</string>
+                                          </property>
+                                         </widget>
+                                        </item>
+                                        <item>
+                                         <widget class="QLineEdit" name="le_suppr_id"/>
+                                        </item>
+                                        <item>
+                                         <widget class="QPushButton" name="btn_supprimer_action">
+                                          <property name="text">
+                                           <string>Supprimer définitivement</string>
+                                          </property>
+                                         </widget>
+                                        </item>
+                                        <item>
+                                         <spacer>
+                                          <property name="orientation">
+                                           <enum>Qt::Vertical</enum>
+                                          </property>
+                                         </spacer>
+                                        </item>
+                                       </layout>
+                                      </widget>
+                                     </item>
+                                    </layout>
+                                   </widget>
+                                   <!-- TAB STATISTIQUES -->
+                                                  <widget class="QWidget" name="tab_stats">
+                                                   <attribute name="title">
+                                                    <string>📊 Statistiques</string>
+                                                   </attribute>
+                                                   <layout class="QVBoxLayout">
+                                                    <item>
+                                                     <widget class="QGroupBox" name="groupStats">
+                                                      <property name="title">
+                                                       <string>Aperçu Global</string>
+                                                      </property>
+                                                      <layout class="QFormLayout">
+                                                       <item row="0" column="0">
+                                                        <widget class="QLabel">
+                                                         <property name="text">
+                                                          <string>Nombre total de modèles :</string>
+                                                         </property>
+                                                        </widget>
+                                                       </item>
+                                                       <item row="0" column="1">
+                                                        <widget class="QLabel" name="lbl_total_modeles">
+                                                         <property name="text">
+                                                          <string>0</string>
+                                                         </property>
+                                                        </widget>
+                                                       </item>
+                                                      </layout>
+                                                     </widget>
+                                                    </item>
+                                                    <item>
+                                                     <widget class="QPushButton" name="btn_export_stats_pdf">
+                                                      <property name="text">
+                                                       <string>Exporter statistiques en PDF</string>
+                                                      </property>
+                                                     </widget>
+                                                    </item>
+                                                    <item>
+                                                     <spacer>
+                                                      <property name="orientation">
+                                                       <enum>Qt::Vertical</enum>
+                                                      </property>
+                                                     </spacer>
+                                                    </item>
+                                                   </layout>
+                                                  </widget>
+                                                  <property name="styleSheet">
+                                                   <string notr="true">QMainWindow, QWidget#centralwidget {
+                                                       background-color: #F5EBD7;
+                                                   }
+                                                   QTabWidget::pane {
+                                                       border: 1px solid #8D6E63;
+                                                       background-color: #F2E7D5;
+                                                   }
+                                                   QTabBar::tab {
+                                                       background-color: #D7CCC8;
+                                                       color: #5D4037;
+                                                       padding: 10px 25px;
+                                                       border-top-left-radius: 8px;
+                                                       border-top-right-radius: 8px;
+                                                       margin-right: 4px;
+                                                       font-weight: bold;
+                                                   }
+                                                   QTabBar::tab:selected {
+                                                       background-color: #5D4037;
+                                                       color: white;
+                                                   }
+                                                   QLabel {
+                                                       color: #3E2723;
+                                                       font-weight: bold;
+                                                   }
+                                                   QLineEdit, QDateEdit, QComboBox {
+                                                       background-color: #FFFFFF;
+                                                       border: 1px solid #A1887F;
+                                                       border-radius: 5px;
+                                                       padding: 5px;
+                                                       color: #3E2723;
+                                                   }
+                                                   QPushButton {
+                                                       background-color: #5D4037;
+                                                       color: white;
+                                                       border-radius: 8px;
+                                                       padding: 8px 15px;
+                                                       font-weight: bold;
+                                                   }
+                                                   QPushButton:hover {
+                                                       background-color: #795548;
+                                                   }
+                                                   /* Supprimer ou commenter les styles spécifiques pour les boutons */
+                                                   /*
+                                                   QPushButton#btn_supprimer_action {
+                                                       background-color: #D32F2F;
+                                                   }
+                                                   QPushButton#btn_modifier_save {
+                                                       background-color: #2E7D32;
+                                                   }
+                                                   QPushButton#btn_export_pdf {
+                                                       background-color: #1976D2;
+                                                   }
+                                                   QPushButton#btn_rechercher, QPushButton#btn_trier {
+                                                       background-color: #1976D2;
+                                                   }
+                                                   */
+                                                   QTableWidget, QTableView {
+                                                       background-color: #FFFFFF;
+                                                       border: 1px solid #8D6E63;
+                                                       gridline-color: #D7CCC8;
+                                                   }
+                                                   QHeaderView::section {
+                                                       background-color: #5D4037;
+                                                       color: white;
+                                                       padding: 4px;
+                                                   }
+                                                   QGroupBox::title {
+                                                       subcontrol-origin: margin;
+                                                       subcontrol-position: top left;
+                                                       padding: 0 10px;
+                                                       color: #5D4037;
+                                                       background-color: transparent;
+                                                   }</string>
+                                                  </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
     <widget class="QWidget" name="page_5"/>
    </widget>
   </widget>
@@ -1172,7 +1724,7 @@ QHeaderView::section {
      <x>0</x>
      <y>0</y>
      <width>1212</width>
-     <height>25</height>
+     <height>33</height>
     </rect>
    </property>
   </widget>
