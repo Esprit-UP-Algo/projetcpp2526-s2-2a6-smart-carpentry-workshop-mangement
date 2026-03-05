@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Login</class>
+ <widget class="QDialog" name="Login">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>920</width>
+    <height>608</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* --- Fond de la fenêtre de Login --- */
+#LoginWindow, QWidget {
+    background-color: #F5EBD7; /* Même beige que la MainWindow */
+}
+
+/* --- Style des Textes (EMAIL, PASSWORD, etc.) --- */
+QLabel {
+    color: #3E2723; /* Marron très foncé */
+    font-weight: bold;
+    font-size: 12px;
+    background: transparent;
+}
+
+/* --- Style des champs de saisie (Email et Mot de passe) --- */
+QLineEdit {
+    background-color: #FFFFFF; /* Blanc pur */
+    border: 2px solid #A1887F; /* Bordure marron clair */
+    border-radius: 8px;
+    padding: 8px;
+    color: #3E2723;
+    selection-background-color: #D7CCC8;
+}
+
+/* Effet quand on clique dans le champ */
+QLineEdit:focus {
+    border: 2px solid #5D4037; /* Bordure plus foncée au focus */
+}
+
+/* --- Le bouton SIGN IN --- */
+QPushButton {
+    background-color: #5D4037; /* Marron chocolat */
+    color: white;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+    font-size: 13px;
+    min-width: 100px;
+}
+
+/* Effet de survol (hover) */
+QPushButton:hover {
+    background-color: #795548; /* Marron un peu plus clair au survol */
+}
+
+/* Effet quand on clique sur le bouton */
+QPushButton:pressed {
+    background-color: #3E2723;
+}
+
+/* --- Style spécifique pour le cadre du Logo (si nécessaire) --- */
+/* Si ton label de logo a un cadre que tu veux styliser */
+QLabel#label_logo {
+    border: none;
+    background: transparent;
+}</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>50</y>
+     <width>411</width>
+     <height>231</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="ressources.qrc">:/new/prefix1/Image2 (2).png</pixmap>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>270</y>
+     <width>131</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;EMAIL :&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>320</y>
+     <width>491</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>380</y>
+     <width>171</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:14pt;&quot;&gt;PASSWORD :&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_2">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>420</y>
+     <width>491</width>
+     <height>41</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_signin">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>480</y>
+     <width>140</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 11pt &quot;Segoe UI&quot;;
+font: 700 11pt &quot;Segoe UI&quot;;</string>
+   </property>
+   <property name="text">
+    <string>SIGN IN</string>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="ressources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

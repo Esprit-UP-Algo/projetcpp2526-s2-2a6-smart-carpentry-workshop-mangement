@@ -1,0 +1,26 @@
+{
+	"BUILD_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/FINALE_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration",
+	"CMAKE_SOURCE_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration",
+	"CROSS_CONFIG" : false,
+	"GENERATOR" : "Ninja",
+	"INCLUDE_DIR" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/FINALE_autogen/include",
+	"INPUTS" : 
+	[
+		"C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/logo interface.png",
+		"C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/Image2 (2).png"
+	],
+	"LOCK_FILE" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/CMakeFiles/FINALE_autogen.dir/AutoRcc_ressources_EWIEGA46WW_Lock.lock",
+	"MULTI_CONFIG" : false,
+	"OPTIONS" : [ "--no-zstd", "-name", "ressources" ],
+	"OUTPUT_CHECKSUM" : "EWIEGA46WW",
+	"OUTPUT_NAME" : "qrc_ressources.cpp",
+	"RCC_EXECUTABLE" : "C:/Qt/6.7.3/mingw_64/bin/rcc.exe",
+	"RCC_LIST_OPTIONS" : [ "--list" ],
+	"SETTINGS_FILE" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/CMakeFiles/FINALE_autogen.dir/AutoRcc_ressources_EWIEGA46WW_Used.txt",
+	"SOURCE" : "C:/Users/youss/OneDrive/Desktop/qt integration (2)/qt integration/qt integration/ressources.qrc",
+	"USE_BETTER_GRAPH" : false,
+	"VERBOSITY" : 0
+}

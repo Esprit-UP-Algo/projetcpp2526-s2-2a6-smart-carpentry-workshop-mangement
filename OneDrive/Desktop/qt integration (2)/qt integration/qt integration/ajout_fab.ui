@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_Ajout_Fabrication</class>
+ <widget class="QDialog" name="Dialog_Ajout_Fabrication">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>420</width><height>320</height></rect>
+  </property>
+  <property name="windowTitle"><string>Ajouter Fabrication</string></property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: #f0e6d3; }
+QLabel { color: #3b1a08; font-family: &quot;Segoe UI&quot;; font-size: 10pt; font-weight: bold; }
+QLineEdit { background-color: #fdf6ec; border: 1px solid #8b5e3c; border-radius: 3px; padding: 3px 6px; color: #3b1a08; font-family: &quot;Segoe UI&quot;; font-size: 10pt; }
+QLineEdit:focus { border: 1.5px solid #5a2d0c; }
+QDateEdit { background-color: #fdf6ec; border: 1px solid #8b5e3c; border-radius: 3px; padding: 3px 6px; color: #3b1a08; font-family: &quot;Segoe UI&quot;; font-size: 10pt; }
+QDateEdit:focus { border: 1.5px solid #5a2d0c; }
+QDateEdit::drop-down { border: none; background-color: #8b5e3c; width: 20px; }
+QPushButton { background-color: #6b2d0e; color: #f0e6d3; border: none; border-radius: 5px; padding: 8px 20px; font-family: &quot;Segoe UI&quot;; font-size: 10pt; font-weight: bold; }
+QPushButton:hover { background-color: #8b3d1a; }
+QPushButton:pressed { background-color: #4a1e08; }
+QPushButton#btn_annuler { background-color: #9e7b5a; }
+QPushButton#btn_annuler:hover { background-color: #b8926e; }
+QPushButton#btn_annuler:pressed { background-color: #7a5a3a; }
+QFrame#frame_titre { background-color: #6b2d0e; border-radius: 5px; }
+QLabel#lbl_titre { color: #f0e6d3; font-size: 12pt; }
+QFrame#frame_contenu { background-color: #f5ede0; border: 2px solid #8b5e3c; border-radius: 5px; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="layout_principal">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>12</number></property>
+   <property name="topMargin"><number>12</number></property>
+   <property name="rightMargin"><number>12</number></property>
+   <property name="bottomMargin"><number>12</number></property>
+   <item>
+    <widget class="QFrame" name="frame_titre">
+     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+     <layout class="QHBoxLayout" name="layout_titre">
+      <property name="leftMargin"><number>10</number></property>
+      <property name="topMargin"><number>8</number></property>
+      <property name="rightMargin"><number>10</number></property>
+      <property name="bottomMargin"><number>8</number></property>
+      <item>
+       <widget class="QLabel" name="lbl_titre">
+        <property name="text"><string>Ajouter une Fabrication</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacer_top">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>8</height></size></property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame_contenu">
+     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+     <layout class="QVBoxLayout" name="layout_contenu">
+      <property name="spacing"><number>12</number></property>
+      <property name="leftMargin"><number>20</number></property>
+      <property name="topMargin"><number>18</number></property>
+      <property name="rightMargin"><number>20</number></property>
+      <property name="bottomMargin"><number>18</number></property>
+      <item>
+       <layout class="QHBoxLayout" name="layout_id">
+        <item>
+         <widget class="QLabel" name="lbl_id">
+          <property name="text"><string>ID Fabrication :</string></property>
+          <property name="minimumSize"><size><width>130</width><height>0</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="input_id_fabrication">
+          <property name="placeholderText"><string>Ex : FAB-001</string></property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_modele">
+        <item>
+         <widget class="QLabel" name="lbl_modele">
+          <property name="text"><string>Modèle :</string></property>
+          <property name="minimumSize"><size><width>130</width><height>0</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="input_modele">
+          <property name="placeholderText"><string>Nom du modèle</string></property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_date">
+        <item>
+         <widget class="QLabel" name="lbl_date_debut">
+          <property name="text"><string>Date De Début :</string></property>
+          <property name="minimumSize"><size><width>130</width><height>0</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="input_date_debut">
+          <property name="displayFormat"><string>dd/MM/yyyy</string></property>
+          <property name="calendarPopup"><bool>true</bool></property>
+          <property name="date"><date><year>2000</year><month>1</month><day>1</day></date></property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer_mid">
+        <property name="orientation"><enum>Qt::Vertical</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_boutons">
+        <item>
+         <spacer name="sp_l"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_ajouter">
+          <property name="text"><string>Ajouter</string></property>
+          <property name="minimumSize"><size><width>110</width><height>35</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sp_m"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>15</width><height>20</height></size></property></spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_annuler">
+          <property name="text"><string>Annuler</string></property>
+          <property name="minimumSize"><size><width>110</width><height>35</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sp_r"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btn_annuler</sender><signal>clicked()</signal>
+   <receiver>Dialog_Ajout_Fabrication</receiver><slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel"><x>300</x><y>280</y></hint>
+    <hint type="destinationlabel"><x>210</x><y>160</y></hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

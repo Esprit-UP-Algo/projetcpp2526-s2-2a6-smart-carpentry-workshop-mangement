@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_Supprimer_Fabrication</class>
+ <widget class="QDialog" name="Dialog_Supprimer_Fabrication">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>400</width><height>220</height></rect>
+  </property>
+  <property name="windowTitle"><string>Confirmation Suppression</string></property>
+  <property name="styleSheet">
+   <string notr="true">QDialog { background-color: #f0e6d3; }
+QLabel { color: #3b1a08; font-family: &quot;Segoe UI&quot;; font-size: 10pt; font-weight: bold; }
+QLabel#lbl_titre { color: #f0e6d3; font-size: 12pt; }
+QLabel#lbl_icone { color: #c0392b; font-size: 28pt; }
+QLabel#lbl_message { color: #3b1a08; font-size: 11pt; font-weight: bold; }
+QLabel#lbl_sous_message { color: #7a5a3a; font-size: 9pt; font-weight: normal; }
+QPushButton { background-color: #6b2d0e; color: #f0e6d3; border: none; border-radius: 5px; padding: 8px 20px; font-family: &quot;Segoe UI&quot;; font-size: 10pt; font-weight: bold; }
+QPushButton:hover { background-color: #8b3d1a; }
+QPushButton:pressed { background-color: #4a1e08; }
+QPushButton#btn_supprimer { background-color: #8b1a1a; }
+QPushButton#btn_supprimer:hover { background-color: #a52020; }
+QPushButton#btn_supprimer:pressed { background-color: #5c1010; }
+QPushButton#btn_annuler { background-color: #9e7b5a; }
+QPushButton#btn_annuler:hover { background-color: #b8926e; }
+QPushButton#btn_annuler:pressed { background-color: #7a5a3a; }
+QFrame#frame_titre { background-color: #6b2d0e; border-radius: 5px; }
+QFrame#frame_contenu { background-color: #f5ede0; border: 2px solid #8b5e3c; border-radius: 5px; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="layout_principal">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>12</number></property>
+   <property name="topMargin"><number>12</number></property>
+   <property name="rightMargin"><number>12</number></property>
+   <property name="bottomMargin"><number>12</number></property>
+   <item>
+    <widget class="QFrame" name="frame_titre">
+     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+     <layout class="QHBoxLayout" name="layout_titre">
+      <property name="leftMargin"><number>10</number></property>
+      <property name="topMargin"><number>8</number></property>
+      <property name="rightMargin"><number>10</number></property>
+      <property name="bottomMargin"><number>8</number></property>
+      <item>
+       <widget class="QLabel" name="lbl_titre">
+        <property name="text"><string>Supprimer une Fabrication</string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="spacer_top">
+     <property name="orientation"><enum>Qt::Vertical</enum></property>
+     <property name="sizeHint" stdset="0"><size><width>20</width><height>8</height></size></property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QFrame" name="frame_contenu">
+     <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+     <layout class="QVBoxLayout" name="layout_contenu">
+      <property name="spacing"><number>10</number></property>
+      <property name="leftMargin"><number>20</number></property>
+      <property name="topMargin"><number>18</number></property>
+      <property name="rightMargin"><number>20</number></property>
+      <property name="bottomMargin"><number>18</number></property>
+      <item>
+       <layout class="QHBoxLayout" name="layout_msg">
+        <item>
+         <widget class="QLabel" name="lbl_icone">
+          <property name="text"><string>⚠</string></property>
+          <property name="alignment"><set>Qt::AlignCenter</set></property>
+          <property name="maximumSize"><size><width>50</width><height>16777215</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="layout_texte">
+          <property name="spacing"><number>4</number></property>
+          <item>
+           <widget class="QLabel" name="lbl_message">
+            <property name="text"><string>Êtes-vous sûr de vouloir supprimer ?</string></property>
+            <property name="wordWrap"><bool>true</bool></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbl_sous_message">
+            <property name="text"><string>Cette action est irréversible.</string></property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="spacer_mid">
+        <property name="orientation"><enum>Qt::Vertical</enum></property>
+        <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_boutons">
+        <item>
+         <spacer name="sp_l"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_supprimer">
+          <property name="text"><string>Supprimer</string></property>
+          <property name="minimumSize"><size><width>110</width><height>35</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sp_m"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>15</width><height>20</height></size></property></spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_annuler">
+          <property name="text"><string>Annuler</string></property>
+          <property name="minimumSize"><size><width>110</width><height>35</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="sp_r"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property></spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>btn_annuler</sender><signal>clicked()</signal>
+   <receiver>Dialog_Supprimer_Fabrication</receiver><slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel"><x>300</x><y>190</y></hint>
+    <hint type="destinationlabel"><x>200</x><y>110</y></hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_supprimer</sender><signal>clicked()</signal>
+   <receiver>Dialog_Supprimer_Fabrication</receiver><slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel"><x>150</x><y>190</y></hint>
+    <hint type="destinationlabel"><x>200</x><y>110</y></hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
