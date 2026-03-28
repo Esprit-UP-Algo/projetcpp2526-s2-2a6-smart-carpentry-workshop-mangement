@@ -2,7 +2,20 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "personnel.h" // <--- Assurez-vous que c'est bien inclus ici
+#include <QLineEdit>
+#include <QTableWidgetItem>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlDatabase>
+#include <QDate>
+#include <QLabel>
+#include <QPixmap>
+#include <QPainter>
+#include <QModelIndex>
+#include <QTableView>
+
+#include "modele.h"
+#include "personnel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,17 +30,38 @@ public:
     ~MainWindow();
 
 private slots:
+    // ── Slots Modeles ─────────────────────────────────────────────────────
+    void ligneSelectionnee(int row, int col);
+    void on_btn_ajouter_modele_clicked();
+    void on_btn_modifier_modele_clicked();
+    void on_btn_supprimer_modele_clicked();
+    void on_btn_rechercher_modele_clicked();
+    void on_btn_tire_clicked();
+    void on_btn_export_pdf_modele_clicked();
+
+    // ── Slots Personnel ───────────────────────────────────────────────────
     void on_btn_ajouter_3_clicked();
     void on_btn_modifier_2_clicked();
     void on_btn_supprimer_2_clicked();
-    // Ajoutez d'autres slots ici si vous en avez (ex: pour la recherche, le tri)
-
     void on_tab_employes_clicked(const QModelIndex &index);
 
 private:
     Ui::MainWindow *ui;
-    void refreshTable(); // Déclaration de la fonction
-    bool controlDeSaisie(); // <--- Nouvelle fonction
 
+    // ID du modele selectionne (-1 = aucun)
+    int m_idSelectionne = -1;
+
+    // ── Methodes Modeles ──────────────────────────────────────────────────
+    QSqlDatabase db() const;
+    void chargerTableauModeles();
+    bool validerFormulaire();
+    void reinitialiserFormulaire();
+    void afficherStatistiques();
+
+    // ── Methodes Personnel ────────────────────────────────────────────────
+    void refreshTable();
+    void clearFields();
+    bool controlDeSaisie();
 };
+
 #endif // MAINWINDOW_H
