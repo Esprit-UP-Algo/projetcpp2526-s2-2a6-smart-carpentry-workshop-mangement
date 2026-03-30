@@ -26,9 +26,9 @@ Connexion& Connexion::createInstance()
 bool Connexion::createconnect()
 {
     // Utilisez les identifiants que nous avons configurés précédemment
-    db.setDatabaseName("OracleXE");
-    db.setUserName("ADEM");
-    db.setPassword("1234");
+    db.setDatabaseName("WoodPilot");
+    db.setUserName("WoodPilot");
+    db.setPassword("123");
 
     if (db.open()) {
         qDebug() << "Connexion établie avec succès !";

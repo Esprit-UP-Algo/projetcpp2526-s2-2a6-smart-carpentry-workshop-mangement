@@ -27,32 +27,31 @@ Personnel::Personnel(int cin, QString nom, QString prenom, QDate date_n, QString
 bool Personnel::ajouter()
 {
     QSqlQuery query;
+    QString cin_str = QString::number(cin);
 
-    query.prepare("INSERT INTO PERSONNEL (CIN, NOM, PRENOM, DATENAISSANCE, POSTE, "
-                  "DATEEMBAUCHE, SALAIRE, NUMTEL, RFID) "
+    // AJOUT DE 'RFID' dans la liste des colonnes et ':rfid' dans les valeurs
+    query.prepare("INSERT INTO PERSONNEL (CIN, NOM, PRENOM, DATENAISSANCE, POSTE, DATEEMBAUCHE, SALAIRE, NUMTEL, RFID) "
                   "VALUES (:cin, :nom, :prenom, :date_n, :poste, :date_e, :salaire, :tel, :rfid)");
 
-    // Binding des valeurs
-    query.bindValue(":cin", cin);
+    query.bindValue(":cin", cin_str);
     query.bindValue(":nom", nom);
     query.bindValue(":prenom", prenom);
-    query.bindValue(":date_n", date_naissance);   // Attention : utilise date_naissance du membre
+    query.bindValue(":date_n", date_naissance);
     query.bindValue(":poste", poste);
     query.bindValue(":date_e", date_embauche);
     query.bindValue(":salaire", salaire);
     query.bindValue(":tel", tel);
+
+    // NOUVELLE LIGNE : On relie la valeur rfid
     query.bindValue(":rfid", rfid);
 
     if (!query.exec()) {
-        qDebug() << "ERREUR SQL lors de l'ajout :" << query.lastError().text();
-        qDebug() << "Code erreur Oracle :" << query.lastError().nativeErrorCode();
-        qDebug() << "CIN tenté :" << cin;
+        qDebug() << "ERREUR SQL AJOUT :" << query.lastError().text();
         return false;
     }
-
-    qDebug() << "Ajout réussi pour CIN :" << cin;
     return true;
 }
+
 // AFFICHER
 QSqlQueryModel * Personnel::afficher()
 {
