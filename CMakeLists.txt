@@ -9,43 +9,44 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql PrintSupport)
+# Qt modules nécessaires (sans Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Sql PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Sql PrintSupport)
 
+# Liste des sources
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
-        connexion.cpp
-        connexion.h
-        personnel.cpp   # <--- Ajoutez cette ligne
-        personnel.h
+    main.cpp
+    mainwindow.cpp
+    mainwindow.h
+    mainwindow.ui
+    connexion.cpp
+    connexion.h
+    personnel.cpp
+    personnel.h
+    bois.cpp
+    bois.h
+    modele.cpp
+    modele.h
+    login.cpp
+    login.h
+    login.ui
 )
+
+# Ajouter ressources.qrc s'il existe
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/ressources.qrc)
+    set(PROJECT_SOURCES ${PROJECT_SOURCES} ressources.qrc)
+endif()
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(FINALE
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        login.ui
-        login.h login.cpp
-        ressources.qrc
-        connexion.h connexion.cpp
-        personnel.h personnel.cpp
-        bois.h
-        bois.cpp
     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET FINALE APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
         add_library(FINALE SHARED
             ${PROJECT_SOURCES}
         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(FINALE
             ${PROJECT_SOURCES}
@@ -53,11 +54,15 @@ else()
     endif()
 endif()
 
-target_link_libraries(FINALE PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::PrintSupport)
+# Lier les bibliothèques (sans Network)
+target_link_libraries(FINALE PRIVATE
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
+    Qt${QT_VERSION_MAJOR}::PrintSupport
+)
 
-# Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
+# Configuration pour iOS/macOS
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.FINALE)
 endif()

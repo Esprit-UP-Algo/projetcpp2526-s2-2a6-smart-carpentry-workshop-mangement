@@ -26,9 +26,9 @@ Connexion& Connexion::createInstance()
 bool Connexion::createconnect()
 {
     // Utilisez les identifiants que nous avons configurés précédemment
-    db.setDatabaseName("WoodPilot");
-    db.setUserName("WoodPilot");
-    db.setPassword("123");
+    db.setDatabaseName("woodpilot");
+    db.setUserName("youssef");
+    db.setPassword("1234");
 
     if (db.open()) {
         qDebug() << "Connexion établie avec succès !";

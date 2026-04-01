@@ -29,6 +29,7 @@ Modele::Modele(int id, const QString &nom, const QString &type,
 
 // ═══════════════════════════════════════════════════════════════════════
 //  ajouter()
+//  INSERT dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::ajouter()
 {
@@ -57,6 +58,7 @@ bool Modele::ajouter()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  modifier()
+//  UPDATE dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::modifier()
 {
@@ -87,6 +89,7 @@ bool Modele::modifier()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  supprimer()
+//  DELETE dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::supprimer(int idASupprimer)
 {
@@ -103,6 +106,7 @@ bool Modele::supprimer(int idASupprimer)
 
 // ═══════════════════════════════════════════════════════════════════════
 //  afficher()
+//  SELECT tous les modeles, retourne un QSqlQueryModel
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::afficher()
 {
@@ -132,6 +136,7 @@ QSqlQueryModel* Modele::afficher()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  rechercher()
+//  SELECT avec filtre LIKE selon critere (Nom / ID / Bois)
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::rechercher(const QString &critere, const QString &valeur)
 {
@@ -174,6 +179,7 @@ QSqlQueryModel* Modele::rechercher(const QString &critere, const QString &valeur
 
 // ═══════════════════════════════════════════════════════════════════════
 //  trier()
+//  SELECT ORDER BY colonne choisie
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::trier(const QString &colonne)
 {

@@ -10,6 +10,7 @@ class Connexion
 public:
     // 1. Méthode statique pour récupérer l'instance unique
     static Connexion& createInstance();
+    QSqlDatabase getDatabase() { return db; }  // ✅ AJOUT
 
     // 2. Méthode pour établir la connexion
     bool createconnect();

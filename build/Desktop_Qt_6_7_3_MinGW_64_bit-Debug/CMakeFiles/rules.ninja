@@ -25,7 +25,7 @@ rule CXX_COMPILER__FINALE_unscanned_Debug
 # Rule for linking CXX executable.
 
 rule CXX_EXECUTABLE_LINKER__FINALE_Debug
-  command = C:\WINDOWS\system32\cmd.exe /C "$PRE_LINK && C:\Qt\Tools\mingw1120_64\bin\g++.exe $FLAGS $LINK_FLAGS $in -o $TARGET_FILE -Wl,--out-implib,$TARGET_IMPLIB -Wl,--major-image-version,0,--minor-image-version,0 $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
+  command = C:\Windows\system32\cmd.exe /C "$PRE_LINK && C:\Qt\Tools\mingw1120_64\bin\g++.exe $FLAGS $LINK_FLAGS $in -o $TARGET_FILE -Wl,--out-implib,$TARGET_IMPLIB -Wl,--major-image-version,0,--minor-image-version,0 $LINK_PATH $LINK_LIBRARIES && $POST_BUILD"
   description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
 
@@ -42,7 +42,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = C:\Qt\Tools\CMake_64\bin\cmake.exe --regenerate-during-build -SC:\Users\krayt\OneDrive\Desktop\projetcpp2526-s2-2a6-smart-carpentry-workshop-mangement-integration -BC:\Users\krayt\OneDrive\Desktop\projetcpp2526-s2-2a6-smart-carpentry-workshop-mangement-integration\build\Desktop_Qt_6_7_3_MinGW_64_bit-Debug
+  command = C:\Qt\Tools\CMake_64\bin\cmake.exe --regenerate-during-build -SC:\Users\youss\OneDrive\Desktop\cab\projetcpp2526-s2-2a6-smart-carpentry-workshop-mangement -BC:\Users\youss\OneDrive\Desktop\cab\projetcpp2526-s2-2a6-smart-carpentry-workshop-mangement\build\Desktop_Qt_6_7_3_MinGW_64_bit-Debug
   description = Re-running CMake...
   generator = 1
 
