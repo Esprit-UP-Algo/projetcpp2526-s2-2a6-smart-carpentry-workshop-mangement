@@ -121,13 +121,6 @@ private slots:
     void on_table_modeles_2_cellClicked(int row, int column);
     void on_rech_7_textChanged(const QString &text);
 
-    // ── Suivi ────────────────────────────────────────────────────────────────
-    void on_tree_fabrications_etapes_itemClicked(QTreeWidgetItem *item, int column);
-    void on_btn_optimizer_ai_clicked();
-
-    // ── Réseau AI ────────────────────────────────────────────────────────────
-    void onAIReplyReadyRead();
-    void onAIReplyFinished();
 
 private:
     Ui::MainWindow *ui;
@@ -159,18 +152,6 @@ private:
     void sortFabrications(const QString &criteria);
     int  generateId();
     void exportToPDF();
-
-    // ── Suivi / Timeline helpers ─────────────────────────────────────────────
-    void setupSuivi();
-    void reloadAllFabIds();           // Charge tous les IDs des fabrications
-    void loadEtapesCatalogue();       // Charge le catalogue des étapes
-    void loadFabricationsSuivi();     // Charge l'arbre des fabrications et leurs étapes
-    void buildTimeline(const FabricationSuivi &fab);  // Construit l'affichage de la timeline
-    void clearTimeline();             // Efface la timeline actuelle
-    QWidget* createStepBlock(const EtapeSuivi &etape);  // Crée un bloc visuel pour une étape
-    FabricationSuivi getFabricationSuivi(int fabId);    // Récupère une fabrication avec ses étapes
-    void applyAIOptimisedTimeline(const QString &aiText);  // Applique l'optimisation AI
-
     // ── UI helpers ───────────────────────────────────────────────────────────
     void showAnimatedMessageBox(QMessageBox::Icon icon,
                                 const QString &title,
