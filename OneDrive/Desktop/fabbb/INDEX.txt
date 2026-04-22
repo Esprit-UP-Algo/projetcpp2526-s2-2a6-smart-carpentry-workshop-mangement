@@ -1,0 +1,447 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║        IMPLEMENTATION COMPLÈTE - STATUTS DYNAMIQUES D'ÉTAPES (ETAPE)       ║
+║                                                                            ║
+║                     Qt 6.7.3 + Oracle 11g via ODBC                        ║
+║                                                                            ║
+║                   Sans modification du schéma de base de données           ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+FICHIERS GÉNÉRÉS & MODE D'EMPLOI
+═══════════════════════════════════════════════════════════════════════════════
+
+📦 PACKAGE COMPLET (6 fichiers):
+
+1️⃣  etapes_implementation.cpp
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • Requête SQL Oracle avec calcul du statut dynamique (CASE WHEN)
+      • 6 fonctions HELPER pour couleurs, formatage, libellés
+      • Fonction principale chargerEtapes(int idFabrication)
+      • Fonction afficherTimelineEtapes() pour la timeline visuelle
+      • Fonction creerCarteEtape() pour les cartes individuelles
+      • Structure EtapeData pour stocker les données
+
+    MODE D'EMPLOI:
+      1. Ouvrir ce fichier
+      2. Copier TOUTES les fonctions
+      3. Coller dans mainwindow.cpp (à la fin)
+      4. Compiler et vérifier zéro erreurs
+
+    TAILLE: ~600 lignes de code production-ready
+
+
+2️⃣  etapes_header_snippet.h
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • Structure EtapeData (corps complet)
+      • Déclarations des slots (chargerEtapes, afficherTimelineEtapes, etc.)
+      • Déclarations des fonctions privées (couleurs, formatage, etc.)
+      • Variables membres (m_etapesList, m_tableEtapes, m_timelineContainer)
+      • Liste des includes nécessaires
+
+    MODE D'EMPLOI:
+      1. Ouvrir mainwindow.h
+      2. Accédez à la section "private:"
+      3. Copier du fichier et coller après les autres variables membres
+      4. Ajuster les includes si nécessaire
+
+    TAILLE: ~100 lignes
+
+
+3️⃣  QUICK_START.cpp
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • 6 étapes pour intégration en 5 minutes
+      • Tableau des couleurs avec codes RGB/HEX
+      • Requête SQL à tester
+      • Troubleshooting rapide
+      • Checklist d'intégration
+
+    MODE D'EMPLOI:
+      ▶ COMMENCER PAR CE FICHIER
+      ▶ Suivre les 6 étapes dans l'ordre
+      ▶ Référence rapide pour l'intégration
+
+    PARFAIT POUR: Les impatients et pragmatiques
+
+
+4️⃣  GUIDE_INTEGRATION.cpp
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • 14 étapes d'intégration détaillées avec explications
+      • Exemples de code pour chaque étape
+      • Règles métier expliquées
+      • Gestion d'erreurs
+      • Optimisations possibles
+      • Cas d'usage complets
+
+    MODE D'EMPLOI:
+      1. Lire après QUICK_START.cpp
+      2. Référence pour les détails
+      3. Consulter en cas de question
+
+    PARFAIT POUR: Comprendre en détail ce qui se passe
+
+
+5️⃣  TESTING_GUIDE.cpp
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • 8 fonctions de test indépendantes
+      • testConnexionDB() - Vérifier la DB
+      • testTableEtape() - Vérifier les données
+      • testColonnesEtape() - Vérifier le schéma
+      • testRequeteSQLCase() - Tester la requête
+      • testChargerEtapesDebug() - Debug complet
+      • testCouleurs() - Valider les couleurs
+      • testFormateDate() - Valider le formatage
+      • executerTousLesTests() - Suite complète
+
+    MODE D'EMPLOI:
+      1. Copier les fonctions de test dans mainwindow.cpp
+      2. Ajouter un bouton ou QTimer pour exécuter
+      3. Analyser les résultats en console
+
+    PARFAIT POUR: Debugging et validation
+
+
+6️⃣  SUMMARY.cpp
+    ═════════════════════════════════════════════════════════════════════════
+    
+    CONTENU:
+      • Résumé complet du projet
+      • Architecture complète expliquée
+      • Checklist d'implémentation (6 phases)
+      • Dépendances & includes
+      • Performance & scalabilité
+      • Limitations & solutions
+      • Ressources complémentaires
+      • Ce fichier (INDEX)
+
+    MODE D'EMPLOI:
+      • Référence technique complète
+      • Consulter pour les questions architecturales
+      • Pour les optimisations futures
+
+    PARFAIT POUR: Les architectes et les responsables du projet
+
+
+═══════════════════════════════════════════════════════════════════════════════
+FLUX D'INTÉGRATION RECOMMANDÉ
+═══════════════════════════════════════════════════════════════════════════════
+
+JOUR 1 - DÉCOUVERTE (30 min):
+───────────────────────────
+  1. Lire ce fichier (INDEX)
+  2. Lire QUICK_START.cpp (comprendre les 5 min d'intégration)
+  3. Lire SUMMARY.cpp (comprendre l'architecture)
+
+JOUR 2 - INTÉGRATION (60 min):
+──────────────────────────────
+  1. Suivre les 6 étapes de QUICK_START.cpp
+  2. Consulter GUIDE_INTEGRATION.cpp pour les détails
+  3. Compiler & vérifier zéro erreurs
+
+JOUR 3 - TESTING (30 min):
+──────────────────────
+  1. Ajouter les tests du TESTING_GUIDE.cpp
+  2. Exécuter executerTousLesTests()
+  3. Valider le fonctionnement
+
+JOUR 4 - PRODUCTION (optionnel):
+────────────────────────────────
+  1. Nettoyer les logs de debug
+  2. Faire des tests avec vraies données
+  3. Deployer
+
+═══════════════════════════════════════════════════════════════════════════════
+ARCHITECTURE VISUELLE
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                          MainWindow                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌─ DONNEES ─────────────────┐                                        │
+│  │ QList<EtapeData>          │  → Structure avec:                     │
+│  │ m_etapesList              │    - id, nom, ordre, dates            │
+│  │                           │    - tempsEstime, tempsReel           │
+│  │                           │    - etat (calculé en SQL)            │
+│  └───────────────────────────┘                                        │
+│          ↓ chargerEtapes()                                            │
+│  ┌─ DB QUERY ─────────────────┐                                       │
+│  │ QSqlQuery avec CASE        │  → SELECT IDETAPE, NOMETAPE, ...    │
+│  │ Calcul dynamique ETAT_ETAPE│    CASE WHEN ... THEN ...           │
+│  └───────────────────────────┘    FROM ETAPE WHERE IDFAB = ?        │
+│          ↓                                                             │
+│  ┌─ TABLEAU ──────────────────┐                                      │
+│  │ QTableWidget               │  → 9 colonnes: ID, Nom, Ordre, ..., │
+│  │ m_tableEtapes              │    Statut (color-coded)              │
+│  │ 9 colonnes                 │                                      │
+│  │ Color-coded rows           │                                      │
+│  └───────────────────────────┘                                       │
+│          ↓                                                             │
+│  ┌─ TIMELINE VISUELLE ────────┐                                      │
+│  │ QScrollArea                │  → Cartes horizontales:              │
+│  │ Cartes d'étapes            │    Étape 1 → Étape 2 → Étape 3     │
+│  │ Colores par statut         │    Chaque carte avec badge coloré   │
+│  │ Flèches de séparation      │                                     │
+│  └───────────────────────────┘                                       │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+FLUX DE DONNÉES:
+  
+  chargerEtapes(int idFab)
+       ↓
+  Prépare QSqlQuery avec CASE
+       ↓
+  Exécute: SELECT ... CASE WHEN ... THEN ETAT_ETAPE FROM ETAPE WHERE ...
+       ↓
+  Stocke résultats dans m_etapesList
+       ↓
+  Remplit m_tableEtapes avec les données
+       ↓
+  Appelle afficherTimelineEtapes()
+       ↓
+  Crée des cartes visuelles avec couleurs
+       ↓
+  Affiche timeline horizontale
+
+═══════════════════════════════════════════════════════════════════════════════
+RÈGLES MÉTIER - STATUTS D'ÉTAPES
+═══════════════════════════════════════════════════════════════════════════════
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                  ÉTATS POSSIBLES DE L'ÉTAPE (ETAPE)                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  1️⃣  NON_PLANIFIEE (🔴 ROUGE #DC3545)                                 │
+│      Condition: DATEDEBUT IS NULL                                     │
+│      Signification: Pas encore d'ordre de démarrage                   │
+│      Exemple: Étape prévue pour le mois prochain                      │
+│                                                                       │
+│  2️⃣  PLANIFIEE (🟠 ORANGE #FFC107)                                   │
+│      Condition: DATEDEBUT NOT NULL AND TEMPSREEL = 0 AND DATEFIN NULL│
+│      Signification: Assignée à une date, pas commencée               │
+│      Exemple: Préparation du travail                                  │
+│                                                                       │
+│  3️⃣  EN_COURS (🟡 JAUNE #FFEB3B)                                    │
+│      Condition: DATEDEBUT NOT NULL AND TEMPSREEL > 0 AND DATEFIN NULL │
+│      Signification: Actuellement en exécution                        │
+│      Exemple: Suivi du temps réel en cours                           │
+│                                                                       │
+│  4️⃣  TERMINEE (🟢 VERT #28A745)                                     │
+│      Condition: DATEFIN NOT NULL AND TEMPSREEL <= TEMPSESTIME       │
+│      Signification: Complétée dans les délais                        │
+│      Exemple: Travail terminé, pas de dépassement                    │
+│                                                                       │
+│  5️⃣  EN_RETARD (🔴 ROUGE FONCÉ #8B0000)                             │
+│      Condition: DATEFIN NOT NULL AND TEMPSREEL > TEMPSESTIME        │
+│      Signification: Terminée mais avec dépassement horaire           │
+│      Exemple: Travail fini, mais 2h de plus que prévu               │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+TRANSITION D'ÉTATS (WORKFLOW):
+
+  NON_PLANIFIEE
+        ↓ (DATEDEBUT renseignée)
+  PLANIFIEE
+        ↓ (TEMPSREEL > 0)
+  EN_COURS
+        ↓ (DATEFIN renseignée)
+  ├─→ TERMINEE (si TEMPSREEL ≤ TEMPSESTIME)
+  └─→ EN_RETARD (si TEMPSREEL > TEMPSESTIME)
+
+═══════════════════════════════════════════════════════════════════════════════
+COLONNES DU TABLEAU
+═══════════════════════════════════════════════════════════════════════════════
+
+┌────┬─────────────┬────────────┬────────┬────────────┬──────────┬──────────┐
+│ ID │   Nom Étape │ Ordre Étape│ Date Dé│ Date Fin   │ T. Estim.│ T. Réel  │
+├────┼─────────────┼────────────┼────────┼────────────┼──────────┼──────────┤
+│ 1  │ Découpe     │ 1          │01/01/26│ —          │ 10h      │ 0h       │
+│ 2  │ Assemblage  │ 2          │05/01/26│ —          │ 15h      │ 0h       │
+│ 3  │ Soudure     │ 3          │08/01/26│ —          │ 12h      │ 8h       │
+│ 4  │ Finition    │ 4          │10/01/26│10/01/26    │ 8h       │ 7h       │
+│ 5  │ Emballage   │ 5          │12/01/26│12/01/26    │ 5h       │ 6h       │
+└────┴─────────────┴────────────┴────────┴────────────┴──────────┴──────────┘
+
+         ↓
+
+┌────────────────────────────────────────────────────────┐
+│ Statut (Colonne 8, COLOR-CODED)                       │
+├────────────────────────────────────────────────────────┤
+│ Non Planifiée      (🔴 Fond rouge, texte blanc)     │
+│ Planifiée          (🟠 Fond orange, texte noir)     │
+│ En Cours           (🟡 Fond jaune, texte noir)      │
+│ Terminée           (🟢 Fond vert, texte blanc)      │
+│ En Retard          (🔴 Fond rouge foncé, blanc)     │
+└────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════════════
+TIMELINE VISUELLE
+═══════════════════════════════════════════════════════════════════════════════
+
+Rendu horizontal scrollable:
+
+    ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+    │   Étape 1       │  →   │   Étape 2       │  →   │   Étape 3       │
+    │ Découpe         │      │ Assemblage      │      │ Soudure         │
+    │                 │      │                 │      │                 │
+    │ Début: 01/01    │      │ Début: 05/01    │      │ Début: 08/01    │
+    │ Fin: —          │      │ Fin: —          │      │ Fin: —          │
+    │                 │      │                 │      │                 │
+    │ Est: 10h | Réel:0h    │ Est: 15h | Réel:0h    │ Est: 12h | Réel:8h   │
+    │                 │      │                 │      │                 │
+    │                 │      │                 │      │                 │
+    │ NON_PLANIFIEE   │      │   PLANIFIEE     │      │    EN_COURS     │
+    │  (Rouge)        │      │   (Orange)      │      │   (Jaune)       │
+    └─────────────────┘      └─────────────────┘      └─────────────────┘
+
+Chaque carte inclut:
+  • Numéro de l'étape
+  • Nom descriptif
+  • Dates (formatées DD/MM/YYYY)
+  • Temps estimé vs réel
+  • Badge de statut coloré en bas
+
+═══════════════════════════════════════════════════════════════════════════════
+CHECKLIST D'INTÉGRATION COMPLÈTE (12 points)
+═══════════════════════════════════════════════════════════════════════════════
+
+PHASE 1 : PRÉPARATION
+  ☐ Vérifier connexion DB (ODBC "woodpilot" fonctionne)
+  ☐ Vérifier table ETAPE existe et a les bonnes colonnes
+  ☐ Vérifier données de test existent (SELECT COUNT(*) FROM ETAPE)
+  ☐ Backup de mainwindow.h et mainwindow.cpp
+
+PHASE 2 : INTÉGRATION DES HEADERS
+  ☐ Ajouter structure EtapeData à mainwindow.h
+  ☐ Ajouter variables m_etapesList, m_tableEtapes, m_timelineContainer
+  ☐ Ajouter déclarations de fonctions (slots privés)
+
+PHASE 3 : INTÉGRATION DU CODE
+  ☐ Copier toutes les fonctions d'etapes_implementation.cpp
+  ☐ Coller à la fin de mainwindow.cpp
+  ☐ Compiler et vérifier zéro erreurs
+
+PHASE 4 : ACTIVATION
+  ☐ Initialiser m_tableEtapes et m_timelineContainer
+  ☐ Ajouter appel chargerEtapes() dans un slot existant
+  ☐ Compiler et lancer l'app
+
+PHASE 5 : VALIDATION
+  ☐ Tableau affiche les étapes
+  ☐ Statuts affichent avec les bonnes couleurs
+  ☐ Timeline visuelle s'affiche
+  ☐ Pas de crashes ou warnings critiques
+
+═══════════════════════════════════════════════════════════════════════════════
+POINTS CLÉS À RETENIR
+═══════════════════════════════════════════════════════════════════════════════
+
+✓ PAS DE MODIFICATION DU SCHÉMA DB
+  Le statut est calculé dynamiquement en SQL CASE WHEN
+  Aucune colonne ETAT ajoutée à ETAPE
+  Toute flexibilité pour changer les règles sans migration BD
+
+✓ SQL OPTIMISÉ
+  Une seule requête SELECT avec CASE
+  Pas de boucles de calcul en C++
+  Index recommandé sur (IDFABRICATION, ORDRE)
+
+✓ ARCHITECTURE PROPRE
+  Séparation données / présentation
+  m_etapesList pour accès mémoire rapide
+  Helper functions pour couleurs/formatage
+
+✓ UI RICHE
+  Tableau avec 9 colonnes détaillées
+  Color-coding par statut (5 couleurs distinctes)
+  Timeline visuelle interactive
+
+✓ CODE PRODUCTION-READY
+  Gestion d'erreurs complète
+  Tests inclus
+  Documentation française complète
+  Commentaires inline
+
+═══════════════════════════════════════════════════════════════════════════════
+SUPPORT & TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+Erreur: Compilation échoue
+─────────────────────────
+  → Vérifier tous les includes
+  → Vérifier structure EtapeData dans mainwindow.h
+  → Copier les fonctions complètes depuis etapes_implementation.cpp
+
+Erreur: Tableau vide
+──────────────────
+  → Vérifier IDFABRICATION existe en DB
+  → Exécuter la requête SQL directement en SQL Developer
+  → Consulter TESTING_GUIDE.cpp → testTableEtape()
+
+Erreur: Couleurs ne s'appliquent pas
+────────────────────────────────────
+  → Vérifier couleurEtatEtape() retourne bonne couleur
+  → Vérifier item->setBackground() après setItem()
+  → Exécuter testCouleurs() pour debug
+
+Erreur: Timeline ne s'affiche pas
+─────────────────────────────────
+  → Vérifier m_timelineContainer est initialisé
+  → Vérifier afficherTimelineEtapes() est appelé
+  → Vérifier m_etapesList n'est pas vide
+
+═══════════════════════════════════════════════════════════════════════════════
+RESSOURCES & DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════════
+
+Dans ce package:
+  📄 QUICK_START.cpp     → Démarrage rapide (5 min)
+  📄 GUIDE_INTEGRATION.cpp → Intégration détaillée (14 étapes)
+  📄 TESTING_GUIDE.cpp   → Tests et debugging (8 fonctions)
+  📄 SUMMARY.cpp         → Résumé technique complet
+  📄 INDEX.cpp           → Ce fichier
+
+Ressources externes:
+  → Qt Documentation: https://doc.qt.io/qt-6/
+  → Oracle SQL CASE: https://docs.oracle.com/
+  → ODBC: Configuration de "woodpilot" DSN
+
+═══════════════════════════════════════════════════════════════════════════════
+CONCLUSION
+═══════════════════════════════════════════════════════════════════════════════
+
+Vous avez maintenant une implémentation COMPLÈTE et PRÊTE POUR LA PRODUCTION:
+
+  ✅ Statuts d'étapes calculés dynamiquement en SQL
+  ✅ Zéro modification du schéma de base de données
+  ✅ Interface riche avec tableau + timeline visuelle
+  ✅ Color-coding automatique selon le statut
+  ✅ Code structuré, maintenable, et bien documenté
+  ✅ Tests inclus et guide de troubleshooting
+  ✅ Documentation complète en français
+
+Les étapes suivantes:
+  1. Lire QUICK_START.cpp (5 minutes)
+  2. Suivre les 6 étapes d'intégration
+  3. Copier le code et compiler
+  4. Tester avec les vraies données
+  5. Deployer en production
+
+═══════════════════════════════════════════════════════════════════════════════
+
+                            BON DÉVELOPPEMENT! 🚀
+
+═══════════════════════════════════════════════════════════════════════════════
