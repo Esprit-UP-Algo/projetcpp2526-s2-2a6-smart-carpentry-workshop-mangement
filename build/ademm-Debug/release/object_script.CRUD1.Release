@@ -1,0 +1,10 @@
+release/bois.o
+release/connexion.o
+release/login.o
+release/main.o
+release/mainwindow.o
+release/modele.o
+release/personnel.o
+release/qrc_ressources.o
+release/moc_login.o
+release/moc_mainwindow.o
