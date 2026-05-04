@@ -1,0 +1,169 @@
+const QString MainWindow::ANTHROPIC_API_KEY = "sk-ant-VOTRE_CLE_ICI";
+const QString MainWindow::ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+const QString MainWindow::ANTHROPIC_MODEL   = "claude-3-5-sonnet-20241022";
+void MainWindow::refreshFabricationsTable(const QString &searchText)
+void MainWindow::trierFabrications(const QString &champ)
+void MainWindow::sortFabrications(const QString &criteria)
+    explicit AffectationManuelleDialog(const QMap<QString, QList<EtapeInfo>> &catalogue,
+    QList<ManualEtapeEntry> entries() const
+    QMap<QString, QList<EtapeInfo>> m_catalogue;
+    QList<ManualEtapeEntry> m_entries;
+    explicit DialogAlertes(const QList<AlerteInfo> &alertes,
+QString MainWindow::calculerStatutEtape(const QDate &dateDebut,
+QString MainWindow::calculerStatutFabrication(int fabId)
+double MainWindow::calculerProgression(int fabId)
+int MainWindow::compterEtapesFabrication(int idFabrication)
+int MainWindow::calculerTempsEstimeTotal(int idFabrication)
+QString MainWindow::calculerComplexiteFabrication(int idFabrication)
+QString MainWindow::predireStatutFabrication(int fabId)
+QString MainWindow::couleurComplexiteBadge(const QString &complexite) const
+QString MainWindow::getPredictionIcon(const QString &status)
+double MainWindow::calculatePerformanceRatio(double tempsReel, double tempsEstime)
+QString MainWindow::getPredictionStatus(double ratio)
+QString MainWindow::getEtapeActuelle(int fabId)
+QString MainWindow::getProchainEtape(int fabId)
+void MainWindow::initArduino()
+void MainWindow::envoyerArduino(const QString &message)
+void MainWindow::envoyerBienvenueArduino()
+void MainWindow::envoyerAlertesArduino()
+void MainWindow::envoyerModificationArduino(const QString &module,
+void MainWindow::applyFabricationTheme()
+    const QList<QWidget*> fields = {
+    const QList<QPushButton*> buttons = {
+void MainWindow::applyPhotoTheme()
+void MainWindow::updateSidebarSelection(QPushButton *activeButton)
+    const QList<QPushButton*> menuButtons = {
+void MainWindow::setupSuivi()
+void MainWindow::reloadAllFabIds()
+QMap<QString, QList<EtapeInfo>> MainWindow::getCatalogue()
+QMap<QString, QList<EtapeInfo>> MainWindow::getCatalogueParModele()
+    QMap<QString, QList<EtapeInfo>> catalogue;
+    catalogue.insert("Chaise", QList<EtapeInfo>{
+    catalogue.insert("Table", QList<EtapeInfo>{
+    catalogue.insert("Salon", QList<EtapeInfo>{
+    catalogue.insert("Armoire", QList<EtapeInfo>{
+    catalogue.insert("Generique", QList<EtapeInfo>{
+QString MainWindow::getNomModelePourFabrication(int idFabrication)
+QList<EtapeInfo> MainWindow::genererEtapesSelonModele(const QString &nomModele)
+    const QMap<QString, QList<EtapeInfo>> catalogue = getCatalogueParModele();
+int MainWindow::getSelectedFabricationId()
+void MainWindow::chargerEtapes(int idFabrication)
+int MainWindow::getSelectedEtapeId()
+void MainWindow::on_btnDemarrerEtape_clicked()
+void MainWindow::on_btnTerminerEtape_clicked()
+int MainWindow::getNextOrdre(int idFabrication)
+bool MainWindow::etapeExisteDeja(int idFabrication, const QString &nomEtape)
+int MainWindow::tempsCatalogue(const QString &nomEtape)
+int MainWindow::currentSelectedFabricationId() const
+    const QList<QTableWidgetItem *> selected = ui->table_fabrications_etapes->selectedItems();
+bool MainWindow::insererEtapeSiAbsente(int fabId,
+void MainWindow::refreshSuiviAfterChanges(int fabId)
+void MainWindow::on_btnOptimizer_clicked()
+    QList<EtapeInfo> etapes = genererEtapesSelonModele(nomModele);
+void MainWindow::on_btnAffectationManuelle_clicked()
+    const QList<ManualEtapeEntry> entries = dialog.entries();
+void MainWindow::on_btnAjouterEtape_clicked()
+void MainWindow::ensureStatistiqueWidgets()
+void MainWindow::buildKPICards()
+    const QList<KPIData> kpis = {
+void MainWindow::buildEtapeStatusPieChart()
+void MainWindow::buildFabricationsByModeleBarChart()
+void MainWindow::buildStatsInsightsPanel()
+void MainWindow::chargerStatistiquesComplexite()
+void MainWindow::buildFiltresSuivi()
+void MainWindow::on_filtres_suivi_changed()
+void MainWindow::loadFabricationsSuivi()
+void MainWindow::chargerTableSuiviAvecComplexite()
+void MainWindow::loadFabricationsSuiviFiltre(const QString &filtreStatut,
+void MainWindow::afficherPanneauDetail(int fabId)
+void MainWindow::computeTimelineStates(FabricationSuivi &fab,
+void MainWindow::clearTimeline()
+QWidget* MainWindow::createStepBlock(const EtapeSuivi &etape)
+QString MainWindow::calculerEtatEtape(const QVariant &dateDebut,
+QString MainWindow::formaterDate(const QVariant &value)
+QString MainWindow::formaterTexte(const QVariant &value)
+int MainWindow::cinPersonnelParDefaut() const
+QVariantMap MainWindow::chargerDonneesEtape(int idEtape)
+    QVariantMap data;
+bool MainWindow::existeEtapeActiveDansFabrication(int idFabrication, int idEtapeCourante)
+bool MainWindow::peutDemarrerEtape(int idEtape)
+    const QVariantMap data = chargerDonneesEtape(idEtape);
+QString MainWindow::couleurEtatEtapeBadge(const QString &etat) const
+void MainWindow::afficherDetailsEtape(int idEtape)
+        const QVariantMap data = chargerDonneesEtape(idEtape);
+void MainWindow::demarrerEtapeDepuisDialog(int idEtape)
+void MainWindow::terminerEtapeDepuisDialog(int idEtape)
+void MainWindow::buildTimeline(const FabricationSuivi &fab)
+void MainWindow::mettreAJourTimelineComplexite()
+void MainWindow::on_table_fabrications_etapes_cellClicked(int row, int column)
+QList<AlerteInfo> MainWindow::chargerAlertes()
+    QList<AlerteInfo> alertes;
+void MainWindow::mettreAJourBoutonAlertes()
+void MainWindow::afficherDialogAlertes()
+void MainWindow::allerVersAlerte(int idFabrication, int idEtape)
+        const QList<QWidget*> cards = ui->scroll_timeline->widget()->findChildren<QWidget*>();
+void MainWindow::verifierAlertesAuDemarrage()
+void MainWindow::on_btnAlertes_clicked()
+void MainWindow::verifierAlertes()
+void MainWindow::calculateAndDisplayFabricationPrediction(int fabId)
+void MainWindow::loadEtapesCatalogue()
+QString MainWindow::repondreQuestion(const QString &question, int fabId)
+QString MainWindow::getChatStatusGlobal()
+QString MainWindow::getChatRetard()
+QString MainWindow::getChatRatioGlobal()
+QString MainWindow::getChatEtapesEnCours()
+QString MainWindow::getChatDemainGlobal()
+QString MainWindow::getChatRatioInfGlobal()
+QString MainWindow::getChatPersonnel(int fabId)
+QString MainWindow::getChatPlusRisquee()
+QString MainWindow::getChatPlusGrandEcart()
+QString MainWindow::getChatProgressionFaible()
+QString MainWindow::getChatNbTerminees()
+void MainWindow::appendChatMessage(const QString &message)
+QString MainWindow::getFabricationStatusMessage(int fabId)
+QString MainWindow::getDelayMessage(int fabId)
+QString MainWindow::getSlowestStepMessage(int fabId)
+QString MainWindow::getTotalEstimatedMessage(int fabId)
+QString MainWindow::getTotalRealMessage(int fabId)
+QString MainWindow::getCurrentStepMessage(int fabId)
+QString MainWindow::getTermineesTodayMessage(int fabId)
+QString MainWindow::getRatioInfMessage(int fabId)
+QString MainWindow::getDemainMessage(int fabId)
+void MainWindow::on_btn_chatbot_clicked()
+    QList<QuestionDef> qdefs = {
+void MainWindow::on_chat_status_clicked()      { appendChatMessage(getChatStatusGlobal()); }
+void MainWindow::on_chat_retard_clicked()      { appendChatMessage(getChatRetard()); }
+void MainWindow::on_chat_ratio_clicked()       { if(m_fabSelected) appendChatMessage(getSlowestStepMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_terminees_clicked()   { if(m_fabSelected) appendChatMessage(getTermineesTodayMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_encours_clicked()     { if(m_fabSelected) appendChatMessage(getCurrentStepMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_temps_prevu_clicked() { if(m_fabSelected) appendChatMessage(getTotalEstimatedMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_temps_reel_clicked()  { if(m_fabSelected) appendChatMessage(getTotalRealMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_ratio_inf_clicked()   { if(m_fabSelected) appendChatMessage(getRatioInfMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_demain_clicked()      { if(m_fabSelected) appendChatMessage(getDemainMessage(m_selectedFab.id)); }
+void MainWindow::on_chat_statut_fab_clicked()  { if(m_fabSelected) appendChatMessage(getFabricationStatusMessage(m_selectedFab.id)); }
+void MainWindow::onAIReplyReadyRead()
+void MainWindow::onAIReplyFinished()
+void MainWindow::onAIReplyError(QNetworkReply::NetworkError error)
+void MainWindow::on_btn_personnel_clicked()
+void MainWindow::on_btn_modele_clicked()
+void MainWindow::on_btn_bois_clicked()
+void MainWindow::on_btn_etape_clicked()
+void MainWindow::on_btn_fabrication_clicked()
+int MainWindow::generateId()
+void MainWindow::generateFabricationId()
+void MainWindow::clearFabricationFields()
+bool MainWindow::validateFabricationFields()
+void MainWindow::loadFabrications()
+void MainWindow::filterFabrications(const QString &searchText)
+void MainWindow::exportToPDF()
+void MainWindow::on_btn_ajouter_2_clicked()
+void MainWindow::on_btn_modifier_clicked()
+void MainWindow::on_btn_supprimer_clicked()
+void MainWindow::on_rech_7_textChanged(const QString &text)   { filterFabrications(text); }
+void MainWindow::on_btn_rechercher_6_clicked()                { filterFabrications(ui->rech_7->text()); }
+void MainWindow::on_btn_tire_2_clicked()                      { trierFabrications(ui->cb_critere_recherche_modele_2->currentText()); }
+void MainWindow::on_btn_export_pdf_modele_2_clicked()         { exportToPDF(); }
+void MainWindow::on_table_modeles_2_cellClicked(int row, int column)
+void MainWindow::applyAIOptimisedTimeline(const QString &aiText)
+void MainWindow::showAnimatedMessageBox(QMessageBox::Icon icon,
+bool MainWindow::showAnimatedQuestionBox(const QString &title, const QString &text)

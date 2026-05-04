@@ -351,7 +351,7 @@ QStatusBar {
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap>:/new/prefix2/logo interface.png</pixmap>
+      <pixmap resource="ressources.qrc">:/new/prefix2/logo interface.png</pixmap>
      </property>
     </widget>
    </widget>
@@ -368,7 +368,7 @@ QStatusBar {
      <string notr="true">background-color: transparent;</string>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="sqx"/>
     <widget class="QWidget" name="page_4">
@@ -382,7 +382,7 @@ QStatusBar {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_gestion_2">
        <attribute name="title">
@@ -1017,6 +1017,37 @@ QStatusBar {
               </spacer>
              </item>
              <item>
+              <widget class="QPushButton" name="btnAffectationManuelle">
+               <property name="minimumSize">
+                <size>
+                 <width>170</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>210</width>
+                 <height>34</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">
+background-color: #2C3E50;
+color: #FFFFFF;
+border: none;
+border-radius: 6px;
+padding: 6px 14px;
+font-weight: bold;
+font-size: 12px;
+min-height: 28px;
+                </string>
+               </property>
+               <property name="text">
+                <string>Affectation manuelle</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <widget class="QPushButton" name="btn_optimizer_ai">
                <property name="minimumSize">
                 <size>
@@ -1046,7 +1077,7 @@ min-height: 28px;
                 </string>
                </property>
                <property name="text">
-                <string>🤖 Optimiser AI</string>
+                <string>Optimzer</string>
                </property>
               </widget>
              </item>
@@ -1104,7 +1135,7 @@ QScrollArea &gt; QWidget &gt; QWidget { background-color: #F5ECD7; }
                 <x>0</x>
                 <y>0</y>
                 <width>1187</width>
-                <height>192</height>
+                <height>190</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="hl_timeline_steps">
@@ -1157,6 +1188,21 @@ QScrollArea &gt; QWidget &gt; QWidget { background-color: #F5ECD7; }
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tab_statistiques">
+       <attribute name="title">
+        <string>Statistiques</string>
+       </attribute>
+       <widget class="QWidget" name="placeholder_stats" native="true">
+        <property name="geometry">
+         <rect>
+          <x>0</x>
+          <y>0</y>
+          <width>1231</width>
+          <height>621</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
      </widget>
     </widget>
@@ -3173,14 +3219,14 @@ QComboBox QAbstractItemView {
      <x>0</x>
      <y>0</y>
      <width>1403</width>
-     <height>33</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources>
-  <include location="mainwindow.ui"/>
+  <include location="ressources.qrc"/>
  </resources>
  <connections/>
 </ui>

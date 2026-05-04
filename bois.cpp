@@ -37,6 +37,7 @@ bool Bois::ajouter()
     q.bindValue(":date", dateEntree);
     q.bindValue(":fourn",fournisseur);
     q.bindValue(":empl", emplacementStock);
+
     return q.exec();
 }
 
