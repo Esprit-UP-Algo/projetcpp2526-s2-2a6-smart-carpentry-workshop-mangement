@@ -37,7 +37,6 @@ bool Bois::ajouter()
     q.bindValue(":date", dateEntree);
     q.bindValue(":fourn",fournisseur);
     q.bindValue(":empl", emplacementStock);
-
     return q.exec();
 }
 
@@ -85,13 +84,26 @@ QSqlQueryModel* Bois::rechercher(QString mot)
     QSqlQuery q;
     q.prepare("SELECT idbois, nomBois, typeBois, longueur, largeur, epaisseur, "
               "etatBois, prixUnitaire, dateEntree, fournisseur, emplacementStock "
-              "FROM TypeBois WHERE nomBois LIKE :mot OR fournisseur LIKE :mot2");
-    q.bindValue(":mot",  "%" + mot + "%");
-    q.bindValue(":mot2", "%" + mot + "%");
+              "FROM TypeBois WHERE "
+              "UPPER(nomBois) LIKE UPPER(:mot) OR "
+              "UPPER(typeBois) LIKE UPPER(:mot2) OR "
+              "UPPER(etatBois) LIKE UPPER(:mot3) OR "
+              "UPPER(fournisseur) LIKE UPPER(:mot4) OR "
+              "UPPER(emplacementStock) LIKE UPPER(:mot5) OR "
+              "TO_CHAR(prixUnitaire) LIKE :mot6 OR "
+              "TO_CHAR(longueur) LIKE :mot7 OR "
+              "TO_CHAR(largeur) LIKE :mot8 OR "
+              "TO_CHAR(epaisseur) LIKE :mot9 OR "
+              "TO_CHAR(idbois) LIKE :mot10 OR "
+              "TO_CHAR(dateEntree, 'DD/MM/YYYY') LIKE :mot11");
+    QString pattern = "%" + mot + "%";
+    for (int i = 1; i <= 11; i++)
+        q.bindValue(":mot" + (i > 1 ? QString::number(i) : ""), pattern);
     q.exec();
     model->setQuery(std::move(q));
     return model;
 }
+
 QSqlQueryModel* Bois::trier(QString colonne)
 {
     QSqlQueryModel* model = new QSqlQueryModel();

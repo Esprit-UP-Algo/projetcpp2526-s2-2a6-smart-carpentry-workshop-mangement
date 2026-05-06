@@ -3,38 +3,24 @@
 #include "connexion.h"
 #include "arduino_notifier.h"
 
+// Qt Core / Utils
+#include <QDebug>
+#include <QDateTime>
+#include <QTimer>
+#include <QUrl>
+#include <QPointer>
+#include <QProcess>
+#include <QBuffer>
+
+// Qt SQL
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+
+// Qt Widgets
 #include <QMessageBox>
 #include <QPushButton>
-#include <QPrinter>
-#include <QPainter>
-#include <QPainterPath>
-#include <QFileDialog>
-#include <QDateTime>
-#include <QDateEdit>
-#include <QInputDialog>
-#include <QDebug>
 #include <QLabel>
-#include <QPixmap>
-#include <QRegularExpression>
-#include <QHeaderView>
-#include <QTextDocument>
-#include <QtMath>
-#include <QScrollArea>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QFrame>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QUrl>
-#include <QTimer>
-#include <QGraphicsOpacityEffect>
-#include <QPropertyAnimation>
-#include <QGraphicsDropShadowEffect>
-#include <QPointer>
 #include <QComboBox>
 #include <QSpinBox>
 #include <QCheckBox>
@@ -42,13 +28,52 @@
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QAbstractItemView>
-#include <QLayoutItem>
+#include <QHeaderView>
 #include <QTreeWidgetItem>
+
+// Qt GUI / Painting
+#include <QPainter>
+#include <QPainterPath>
+#include <QPixmap>
 #include <QMouseEvent>
 #include <QEnterEvent>
-#include <algorithm>
-#include <functional>
 
+// Qt Print / Export
+#include <QPrinter>
+#include <QFileDialog>
+#include <QTextDocument>
+
+// Qt Layouts / UI
+#include <QScrollArea>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QLayoutItem>
+
+// Qt Effects / Animations
+#include <QGraphicsOpacityEffect>
+#include <QGraphicsDropShadowEffect>
+#include <QPropertyAnimation>
+
+// Qt JSON
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+
+// Qt Network (ajout du 2e code)
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+
+// Qt Math
+#include <QtMath>
+
+// Qt Utils supplémentaires (souvent utilisés dans ton cas)
+#include <QMap>
+#include <QInputDialog>
+#include <QDateEdit>
+
+// Qt Charts
 #include <QtCharts/QChart>
 #include <QtCharts/QChartView>
 #include <QtCharts/QPieSeries>
@@ -57,6 +82,10 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QValueAxis>
+
+// STL
+#include <algorithm>
+#include <functional>
 
 static const QString STYLE_MSG = R"(
     QMessageBox { background-color: #EDE0C8; }
@@ -219,6 +248,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btn_etape,       &QPushButton::clicked, this, [=]() { ui->stackedWidget->setCurrentWidget(ui->page_7); });
     connect(ui->btn_fabrication, &QPushButton::clicked, this, [=]() { ui->stackedWidget->setCurrentWidget(ui->page_4); });
 
+    connect(ui->btn_trier_4, &QPushButton::clicked, this, &MainWindow::on_la_trier_7_clicked);
+    connect(ui->btn_rechercher_4, &QPushButton::clicked, this, &MainWindow::on_chercher_7_clicked);
+
     connect(ui->tabWidget_modeles, &QTabWidget::currentChanged, this, [=](int idx) {
         if (idx == 1) afficherStatistiques();
         if (idx == 2) afficherTendances();
@@ -347,7 +379,6 @@ void MainWindow::refreshBoisTable()
     ui->tab_rech_2->horizontalHeader()->setStretchLastSection(true);
     ui->tab_rech_2->setStyleSheet("QTableView { color: black; background-color: white; }");
 }
-
 void MainWindow::refreshTable() { Personnel P; ui->tab_rech_3->setModel(P.afficher()); }
 
 void MainWindow::on_btn_ajouter_3_clicked()
@@ -405,7 +436,7 @@ void MainWindow::on_la_ajouter_7_clicked()
     if (nom.isEmpty()||fournisseur.isEmpty()||emplacement.isEmpty()) {
         QMessageBox::warning(this,"Erreur","Veuillez remplir tous les champs."); return; }
     Bois b(nom,type,l,w,h,etat,prix,date,fournisseur,emplacement);
-    if (b.ajouter()) { QMessageBox::information(this,"Succes","Bois ajoute !"); envoyerModificationArduino("BOIS", "AJOUT", 0, ui->la_nom_7->currentText()); refreshBoisTable(); }
+    if (b.ajouter()) { QMessageBox::information(this,"Succes","Bois ajoute !"); refreshBoisTable(); }
     else QMessageBox::critical(this,"Erreur","L'ajout a echoue.");
 }
 
@@ -419,7 +450,7 @@ void MainWindow::on_la_modifier_7_clicked()
     double prix=ui->la_prix_7->value(), l=ui->la_l_7->value(), w=ui->la_w_7->value(), h=ui->la_h_7->value();
     QDate date=ui->la_date_7->date();
     Bois b(nom,type,l,w,h,etat,prix,date,fournisseur,emplacement);
-    if (b.modifier(id)) { QMessageBox::information(this,"Succes","Bois modifie !"); envoyerModificationArduino("BOIS", "MOD", id, ui->la_nom_7->currentText()); refreshBoisTable(); }
+    if (b.modifier(id)) { QMessageBox::information(this,"Succes","Bois modifie !"); refreshBoisTable(); }
     else QMessageBox::critical(this,"Erreur","La modification a echoue.");
 }
 
@@ -451,6 +482,7 @@ void MainWindow::on_tab_bois_7_clicked(const QModelIndex &index)
     ui->la_fournisseur_7->setText(get(9).toString());
     ui->la_emplacement_7->setText(get(10).toString());
 }
+
 
 void MainWindow::on_btn_modifier_2_clicked()
 {
@@ -4228,4 +4260,475 @@ void MainWindow::notifierChangementArduino(const QString &action, const QString 
     // Notification centrale : appeler cette fonction uniquement après une opération réussie.
     // Ne pas l’appeler dans les fonctions refresh/load pour éviter les boucles et les messages répétés.
     ::envoyerArduinoLignes(action, detail);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void MainWindow::on_poser_7_clicked()
+{
+    QString question = ui->la_question_7->text().trimmed();
+    if (question.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Veuillez entrer une question.");
+        return;
+    }
+    ui->la_textEdit_22->setText("⏳ Chargement...");
+    ui->poser_7->setEnabled(false);
+    appelGroq(question);
+}
+
+void MainWindow::appelGroq(const QString &question)
+{
+    QString apiKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+
+    // 1. Configuration de l'URL et de la requête
+    QUrl url("https://api.groq.com/openai/v1/chat/completions");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", "Bearer " + apiKey.toUtf8());
+
+    // 2. Construction du JSON (Format OpenAI/Groq)
+    QJsonObject messageSystem;
+    messageSystem["role"] = "system";
+    messageSystem["content"] = "Tu es un expert en menuiserie et gestion du bois qui ne reponds SEULEMENT a ce genre de questions. Réponds de manière concise.";
+
+    QJsonObject messageUser;
+    messageUser["role"] = "user";
+    messageUser["content"] = question;
+
+    QJsonArray messages;
+    messages.append(messageSystem);
+    messages.append(messageUser);
+
+    QJsonObject bodyObj;
+    bodyObj["model"] = "llama-3.3-70b-versatile"; // Ou "mixtral-8x7b-32768"
+    bodyObj["messages"] = messages;
+
+    QJsonDocument jsonDoc(bodyObj);
+    QByteArray jsonData = jsonDoc.toJson();
+
+    // 3. Envoi
+    QNetworkAccessManager *manager = new QNetworkAccessManager(this);
+    QNetworkReply *reply = manager->post(request, jsonData);
+
+    ui->poser_7->setEnabled(false); // On désactive le bouton pendant l'envoi
+
+    connect(reply, &QNetworkReply::finished, this, [=]() {
+        ui->poser_7->setEnabled(true);
+
+        if (reply->error() == QNetworkReply::NoError) {
+            QByteArray responseData = reply->readAll();
+            QJsonDocument doc = QJsonDocument::fromJson(responseData);
+
+            // Structure de réponse Groq : choices[0].message.content
+            QString reponse = doc.object()["choices"].toArray()
+                                  .first().toObject()
+                                      ["message"].toObject()
+                                      ["content"].toString();
+
+            ui->la_textEdit_22->setText(reponse);
+        } else {
+            ui->la_textEdit_22->setText("❌ Erreur Groq : " + reply->errorString());
+            qDebug() << "Réponse complète :" << reply->readAll();
+        }
+        reply->deleteLater();
+        manager->deleteLater();
+    });
+}
+
+void MainWindow::on_stat_bois_clicked()
+{
+    afficherStatsBois();
+}
+
+void MainWindow::afficherStatsBois()
+{
+    // ── Récupérer les données depuis Oracle ───────────────────────────────
+    // 1. Types de bois
+    QMap<QString,int> types, etats, noms;
+    int totalTypes=0, totalEtats=0, totalNoms=0;
+
+    QSqlQuery q1(db());
+    q1.exec("SELECT typeBois, COUNT(*) FROM TypeBois GROUP BY typeBois");
+    while(q1.next()){ types[q1.value(0).toString()] = q1.value(1).toInt(); totalTypes += q1.value(1).toInt(); }
+
+    QSqlQuery q2(db());
+    q2.exec("SELECT etatBois, COUNT(*) FROM TypeBois GROUP BY etatBois");
+    while(q2.next()){ etats[q2.value(0).toString()] = q2.value(1).toInt(); totalEtats += q2.value(1).toInt(); }
+
+    QSqlQuery q3(db());
+    q3.exec("SELECT nomBois, COUNT(*) FROM TypeBois GROUP BY nomBois");
+    while(q3.next()){ noms[q3.value(0).toString()] = q3.value(1).toInt(); totalNoms += q3.value(1).toInt(); }
+
+    // Stats pour barres
+    QMap<QString,double> prixMoyen;
+    QSqlQuery q4(db());
+    q4.exec("SELECT typeBois, AVG(prixUnitaire) FROM TypeBois GROUP BY typeBois");
+    while(q4.next()) prixMoyen[q4.value(0).toString()] = q4.value(1).toDouble();
+
+    // ── Dimensions canvas ─────────────────────────────────────────────────
+    int W = ui->textEdit_bois->width();
+    int H = ui->textEdit_bois->height();
+    if(W < 100 || H < 100){ W = 1100; H = 800; }
+
+
+    QPixmap pix(W, H);
+    pix.fill(QColor("#F5EFE6"));
+    QPainter painter(&pix);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::TextAntialiasing);
+
+    // ── Palette couleurs (plus douce et harmonieuse) ──────────────────────
+    QList<QColor> palette = {
+        QColor("#D97757"), QColor("#F2B768"), QColor("#6B9C7A"),
+        QColor("#8070AD"), QColor("#5C99C2"), QColor("#E07A5F"),
+        QColor("#A3C474"), QColor("#D17AAB")
+    };
+
+    // ... couleurs de fond ...
+    const QColor cHeader(90, 50, 30); // Légèrement plus sombre pour le contraste
+    const QColor cCard(255, 255, 255); // Fond purement blanc pour les cartes
+    const QColor cBord(220, 210, 200); // Bordures très discrètes
+    const QColor cTexte(50, 50, 50);   // Gris foncé plutôt que noir/marron pur
+
+    // ── Titre principal ───────────────────────────────────────────────────
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(cHeader);
+    painter.drawRoundedRect(10, 10, W-20, 44, 10, 10);
+    painter.setPen(Qt::white);
+    painter.setFont(QFont("Arial", 13, QFont::Bold));
+    painter.drawText(QRect(10,10,W-20,44), Qt::AlignCenter, "Statistiques des Bois - WoodPilot");
+
+    // ── Fonction donut ────────────────────────────────────────────────────
+    // ── Fonction donut (Version Modernisée) ───────────────────────────────────
+    auto drawDonut = [&](int cx, int cy, int cw, int ch,
+                         const QMap<QString,int> &data,
+                         const QString &titre, int total)
+    {
+        if(data.isEmpty() || total==0) return;
+
+        // Ombre très douce (alpha à 8 au lieu de 20)
+        painter.setPen(Qt::NoPen); painter.setBrush(QColor(0,0,0,8));
+        painter.drawRoundedRect(cx+3, cy+5, cw, ch, 10, 10);
+
+        // Fond carte
+        painter.setBrush(cCard); painter.setPen(QPen(cBord, 1));
+        painter.drawRoundedRect(cx, cy, cw, ch, 10, 10);
+
+        // Header carte
+        QPainterPath hp; hp.addRoundedRect(QRectF(cx, cy, cw, 35), 10, 10);
+        painter.fillPath(hp, cHeader);
+        painter.fillRect(cx, cy+20, cw, 15, cHeader); // Raccord carré en bas
+        painter.setPen(Qt::white);
+        painter.setFont(QFont("Segoe UI", 10, QFont::Bold)); // Segoe UI fait plus moderne
+        painter.drawText(QRect(cx, cy, cw, 35), Qt::AlignCenter, titre);
+
+        // Calculs du donut
+        int diameter = qMin(cw, ch) - 90; // Un peu plus de place pour la légende
+        int px = cx + (cw - diameter) / 2;
+        int py = cy + 45;
+        QRectF pieRect(px, py, diameter, diameter);
+
+        double angleStart = -90.0 * 16;
+        int i = 0;
+
+        // Dessin des parts
+        for(auto it = data.begin(); it != data.end(); ++it){
+            double fraction = (double)it.value() / total;
+            int span16 = (int)(fraction * 360.0 * 16);
+            painter.setBrush(palette[i % palette.size()]);
+            painter.setPen(QPen(cCard, 2.5)); // Ligne séparatrice plus épaisse
+            painter.drawPie(pieRect, (int)angleStart, span16);
+            angleStart += span16; i++;
+        }
+
+        // Trou central (plus grand : 65% au lieu de 42%)
+        int holeD = (int)(diameter * 0.65);
+        int hx = px + (diameter - holeD) / 2;
+        int hy = py + (diameter - holeD) / 2;
+        painter.setPen(Qt::NoPen); painter.setBrush(cCard);
+        painter.drawEllipse(hx, hy, holeD, holeD);
+
+        // Texte au centre
+        painter.setPen(cHeader);
+        painter.setFont(QFont("Segoe UI", 16, QFont::Bold));
+        painter.drawText(QRect(hx, hy + 5, holeD, holeD / 2), Qt::AlignCenter, QString::number(total));
+        painter.setFont(QFont("Segoe UI", 8));
+        painter.setPen(QColor(130, 130, 130));
+        painter.drawText(QRect(hx, hy + holeD / 2 - 5, holeD, holeD / 2), Qt::AlignCenter, "entrées");
+
+        // Légende (Sécurisée contre le chevauchement)
+        int legY = py + diameter + 15;
+        int legColW = cw / 2 - 10; // Largeur max autorisée par colonne
+        i = 0;
+
+        QFont fontGras("Segoe UI", 7, QFont::Bold);
+        QFont fontNormal("Segoe UI", 7);
+        QFontMetrics fmGras(fontGras);
+
+        for(auto it = data.begin(); it != data.end(); ++it){
+            double pct = (double)it.value() * 100.0 / total;
+            int col2 = i % 2;
+            int row2 = i / 2;
+            int lx2 = cx + 8 + col2 * (cw / 2); // Distribution propre
+            int ly2 = legY + row2 * 20;
+
+            // Puce de couleur
+            painter.setPen(Qt::NoPen);
+            painter.setBrush(palette[i % palette.size()]);
+            painter.drawEllipse(lx2, ly2 + 4, 10, 10);
+
+            // Préparation du texte et troncature intelligente (Elision)
+            QString nomComplet = it.key();
+            QString donnees = QString(" (%1%)").arg(pct, 0, 'f', 0); // On retire la décimale pour gagner de la place
+
+            // Espace dispo pour le nom = largeur colonne - largeur de la puce - largeur des données - marges
+            int espaceDispo = legColW - 15 - fmGras.horizontalAdvance(donnees);
+            QString nomCoupe = fmGras.elidedText(nomComplet, Qt::ElideRight, qMax(20, espaceDispo));
+
+            painter.setPen(cTexte);
+            painter.setFont(fontGras);
+            painter.drawText(lx2 + 15, ly2 + 13, nomCoupe);
+
+            painter.setPen(QColor(130, 130, 130));
+            painter.setFont(fontNormal);
+            painter.drawText(lx2 + 15 + fmGras.horizontalAdvance(nomCoupe), ly2 + 13, donnees);
+            i++;
+        }
+    };
+
+    // ── 3 Donuts ──────────────────────────────────────────────────────────
+    int donutW = (W-40)/3;
+    int donutH = (H-80)/2 - 10;
+    drawDonut(10,      64, donutW, donutH, types, "Répartition par Type",  totalTypes);
+    drawDonut(10+donutW+10, 64, donutW, donutH, etats, "Répartition par État",  totalEtats);
+    drawDonut(10+2*(donutW+10), 64, donutW, donutH, noms, "Répartition par Nom",   totalNoms);
+
+    // ── Barres prix moyen par type ────────────────────────────────────────
+    int barY = 64 + donutH + 20; // Plus d'espace avec les donuts
+    int barH = H - barY - 15;
+    int barAreaW = W - 20;
+
+    // Ombre douce
+    painter.setPen(Qt::NoPen); painter.setBrush(QColor(0,0,0,8));
+    painter.drawRoundedRect(12, barY+3, barAreaW, barH, 10, 10);
+
+    painter.setBrush(cCard); painter.setPen(QPen(cBord,1));
+    painter.drawRoundedRect(10, barY, barAreaW, barH, 10, 10);
+
+    QPainterPath bh; bh.addRoundedRect(QRectF(10, barY, barAreaW, 35), 10, 10);
+    painter.fillPath(bh, cHeader);
+    painter.fillRect(10, barY+20, barAreaW, 15, cHeader);
+
+    painter.setPen(Qt::white);
+    painter.setFont(QFont("Segoe UI", 10, QFont::Bold));
+    painter.drawText(QRect(10, barY, barAreaW, 35), Qt::AlignCenter, "Prix Moyen par Type de Bois (DT)");
+
+    painter.setPen(Qt::NoPen); painter.setBrush(QColor(0,0,0,15));
+    painter.drawRoundedRect(14,barY+4,barAreaW,barH,10,10);
+    painter.setBrush(cCard); painter.setPen(QPen(cBord,1));
+    painter.drawRoundedRect(10,barY,barAreaW,barH,10,10);
+
+
+    if(!prixMoyen.isEmpty()){
+        double maxPrix = *std::max_element(prixMoyen.begin(), prixMoyen.end());
+        int n = prixMoyen.size();
+        int bw = (barAreaW - 40) / n;
+        int usableH = barH - 80;
+        int i=0;
+        for(auto it=prixMoyen.begin(); it!=prixMoyen.end(); ++it){
+            int bx = 20 + i*bw;
+            int bTop = barY + 46;
+            int fillH = maxPrix>0 ? (int)(it.value()/maxPrix*usableH) : 0;
+
+            QLinearGradient grad(bx+8, bTop+usableH-fillH, bx+8, bTop+usableH);
+            grad.setColorAt(0, palette[i%palette.size()].lighter(130));
+            grad.setColorAt(1, palette[i%palette.size()]);
+            painter.setPen(Qt::NoPen); painter.setBrush(grad);
+            painter.drawRoundedRect(bx+8, bTop+usableH-fillH, bw-16, fillH, 4,4);
+
+            // Valeur au dessus
+            painter.setPen(cTexte);
+            painter.setFont(QFont("Arial",8,QFont::Bold));
+            painter.drawText(QRect(bx,bTop+usableH-fillH-18,bw,16),
+                             Qt::AlignCenter, QString("%1 DT").arg(it.value(),0,'f',1));
+
+            // Label en bas
+            painter.setFont(QFont("Arial",8));
+            painter.drawText(QRect(bx, bTop+usableH+4, bw, 20),
+                             Qt::AlignCenter, it.key());
+            i++;
+        }
+    }
+
+    painter.end();
+
+    // ── Afficher dans QLabel ──────────────────────────────────────────────
+    ui->textEdit_bois->setPixmap(pix.scaled(
+        ui->textEdit_bois->width(),
+        ui->textEdit_bois->height(),
+        Qt::KeepAspectRatio,
+        Qt::SmoothTransformation));
+    ui->textEdit_bois->setAlignment(Qt::AlignCenter);
+}
+
+
+
+void MainWindow::on_calcul_decoupage_7_clicked()
+{
+    calculerDecoupage();
+}
+
+void MainWindow::calculerDecoupage()
+{
+    // ── Récupérer l'ID de la planche ──────────────────────────────────────
+    int id = ui->la_id_14->text().toInt();
+    if (id == 0) {
+        QMessageBox::warning(this, "Erreur", "Veuillez entrer un ID de planche valide.");
+        return;
+    }
+
+    // ── Chercher la planche dans la BDD ───────────────────────────────────
+    QSqlQuery q(db());
+    q.prepare("SELECT nomBois, longueur, largeur, epaisseur FROM TypeBois WHERE idbois = :id");
+    q.bindValue(":id", id);
+    if (!q.exec() || !q.next()) {
+        QMessageBox::warning(this, "Erreur", "Planche introuvable. Vérifiez l'ID.");
+        return;
+    }
+
+    QString nomBois  = q.value(0).toString();
+    double longueur  = q.value(1).toDouble();
+    double largeur   = q.value(2).toDouble();
+    double epaisseur = q.value(3).toDouble();
+
+    QString modele = ui->la_modele_7->currentText();
+    QString forme  = ui->la_forme_7->currentText();
+
+    // ── Dimensions standards par modèle et forme (en cm) ─────────────────
+    // Structure : { modele -> { forme -> { l, w, h, nbNecessaire } } }
+    struct DimPiece { double l, w, h; int nbParUnite; QString description; };
+
+    QMap<QString, QMap<QString, DimPiece>> dimensions = {
+        { "Table", {
+                      { "Pieds",     { 72, 4, 4, 4, "4 pieds de 72x4x4 cm" } },
+                      { "Traverses", { 80, 4, 3, 2, "2 traverses de 80x4x3 cm" } },
+                      { "Socle",     { 90, 60, 3, 1, "1 socle de 90x60x3 cm" } },
+                      { "Plateau",   { 90, 80, 4, 1, "1 plateau de 90x80x4 cm" } },
+                      { "Façade",    { 90, 50, 2, 1, "1 façade de 90x50x2 cm" } }
+                  }},
+        { "Chaise", {
+                       { "Pieds",     { 45, 3, 3, 4, "4 pieds de 45x3x3 cm" } },
+                       { "Traverses", { 40, 3, 2, 4, "4 traverses de 40x3x2 cm" } },
+                       { "Socle",     { 45, 45, 2, 1, "1 socle de 45x45x2 cm" } },
+                       { "Plateau",   { 45, 45, 3, 1, "1 assise de 45x45x3 cm" } },
+                       { "Façade",    { 40, 40, 2, 1, "1 dossier de 40x40x2 cm" } }
+                   }},
+        { "Armoire", {
+                        { "Pieds",     { 10, 5, 5, 4, "4 pieds de 10x5x5 cm" } },
+                        { "Traverses", { 80, 5, 3, 4, "4 traverses de 80x5x3 cm" } },
+                        { "Socle",     { 90, 50, 3, 1, "1 socle de 90x50x3 cm" } },
+                        { "Plateau",   { 90, 50, 3, 1, "1 plateau de 90x50x3 cm" } },
+                        { "Façade",    { 90, 99, 2, 1, "1 façade de 90x99x2 cm" } }
+                    }},
+        { "Bureau", {
+                       { "Pieds",     { 75, 5, 5, 4, "4 pieds de 75x5x5 cm" } },
+                       { "Traverses", { 90, 5, 3, 2, "2 traverses de 90x5x3 cm" } },
+                       { "Socle",     { 90, 60, 3, 1, "1 socle de 90x60x3 cm" } },
+                       { "Plateau",   { 90, 70, 4, 1, "1 plateau de 90x70x4 cm" } },
+                       { "Façade",    { 90, 40, 2, 1, "1 façade de 90x40x2 cm" } }
+                   }},
+        { "Bibliothèque", {
+                             { "Pieds",     { 99, 4, 4, 2, "2 montants de 99x4x4 cm" } },
+                             { "Traverses", { 80, 4, 3, 5, "5 étagères de 80x4x3 cm" } },
+                             { "Socle",     { 80, 30, 3, 1, "1 socle de 80x30x3 cm" } },
+                             { "Plateau",   { 80, 30, 3, 1, "1 plateau de 80x30x3 cm" } },
+                             { "Façade",    { 80, 99, 2, 1, "1 façade de 80x99x2 cm" } }
+                         }}
+    };
+
+    if (!dimensions.contains(modele) || !dimensions[modele].contains(forme)) {
+        QMessageBox::warning(this, "Erreur", "Combinaison modèle/forme non supportée.");
+        return;
+    }
+
+    DimPiece piece = dimensions[modele][forme];
+
+    // ── Algorithme de calcul ──────────────────────────────────────────────
+    // Combien de pièces sur la longueur et la largeur
+    int nbLongueur = (int)(longueur / piece.l);
+    int nbLargeur  = (int)(largeur  / piece.w);
+
+    // Vérifier l'épaisseur
+    bool epaisseurOk = (epaisseur >= piece.h);
+
+    int nbPiecesTotal = nbLongueur * nbLargeur;
+
+    // Chutes
+    double chuteLongueur = longueur - (nbLongueur * piece.l);
+    double chuteLargeur  = largeur  - (nbLargeur  * piece.w);
+
+    // Taux d'utilisation
+    double surfacePlanche = longueur * largeur;
+    double surfaceUtilisee = nbPiecesTotal * piece.l * piece.w;
+    double tauxUtilisation = surfacePlanche > 0 ?
+                                 (surfaceUtilisee / surfacePlanche * 100.0) : 0;
+
+    // Nombre d'unités complètes
+    int nbUnites = nbPiecesTotal / piece.nbParUnite;
+
+    // ── Afficher le résultat ──────────────────────────────────────────────
+    QString result;
+    result += "═══════════════════════════════════════\n";
+    result += QString("   OPTIMISATION DE DÉCOUPAGE\n");
+    result += "═══════════════════════════════════════\n\n";
+
+    result += QString(" Planche ID : %1 (%2)\n").arg(id).arg(nomBois);
+    result += QString(" Dimensions : %1 x %2 x %3 cm\n\n")
+                  .arg(longueur).arg(largeur).arg(epaisseur);
+
+    result += QString(" Modèle : %1\n").arg(modele);
+    result += QString(" Forme  : %1\n").arg(forme);
+    result += QString(" Pièce  : %1\n\n").arg(piece.description);
+
+    result += "───────────────────────────────────────\n";
+    result += QString(" Pièces sur longueur : %1\n").arg(nbLongueur);
+    result += QString(" Pièces sur largeur  : %1\n").arg(nbLargeur);
+    result += QString(" Total pièces        : %1\n\n").arg(nbPiecesTotal);
+
+    result += QString(" %2 %1 complet(s) possible(s)\n\n")
+                  .arg(modele).arg(nbUnites);
+
+    result += "───────────────────────────────────────\n";
+    result += QString(" Chute longueur : %1 cm\n").arg(chuteLongueur, 0, 'f', 1);
+    result += QString(" Chute largeur  : %1 cm\n").arg(chuteLargeur,  0, 'f', 1);
+    result += QString(" Taux utilisation : %1%\n\n").arg(tauxUtilisation, 0, 'f', 1);
+
+    if (!epaisseurOk)
+        result += QString("️  ATTENTION : L'épaisseur de la planche (%1 cm) "
+                          "est insuffisante pour cette pièce (%2 cm requis) !\n\n")
+                      .arg(epaisseur).arg(piece.h);
+
+    if (nbPiecesTotal == 0)
+        result += " La planche est trop petite pour cette forme !\n";
+    else if (tauxUtilisation >= 80)
+        result += " Excellent taux d'utilisation !\n";
+    else if (tauxUtilisation >= 50)
+        result += "️  Taux d'utilisation moyen — envisagez une autre découpe.\n";
+    else
+        result += " Mauvais taux d'utilisation — planche inadaptée.\n";
+
+    result += "═══════════════════════════════════════\n";
+
+    ui->la_textEdit_21->setText(result);
 }

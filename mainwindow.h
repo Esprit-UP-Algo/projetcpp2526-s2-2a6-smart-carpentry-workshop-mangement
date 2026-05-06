@@ -42,14 +42,15 @@
 #include "personnel.h"
 #include "bois.h"
 
-// Forward declaration of Ui namespace
+// Forward declaration
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 // ─────────────────────────────────────────────────────────────
-//  Étape de fabrication (onglet Suivi)
+//  Structures de Données (Suivi, Fabrication, Alertes)
 // ─────────────────────────────────────────────────────────────
+
 struct EtapeSuivi {
     int     id;
     QString nom;
@@ -59,12 +60,9 @@ struct EtapeSuivi {
     QDate   dateDebut;
     QDate   dateFin;
     QString statut;   // "Planifié" | "En cours" | "Non planifié"
-    QString cin;      // Optionnel
+    QString cin;      
 };
 
-// ─────────────────────────────────────────────────────────────
-//  Fabrication (onglet Suivi)
-// ─────────────────────────────────────────────────────────────
 struct FabricationSuivi {
     int     id;
     QString modele;
@@ -74,9 +72,6 @@ struct FabricationSuivi {
     QList<EtapeSuivi> etapes;
 };
 
-// ─────────────────────────────────────────────────────────────
-//  Catalogue / alertes fabrication
-// ─────────────────────────────────────────────────────────────
 struct EtapeInfo {
     QString nom;
     int     temps;
@@ -124,7 +119,7 @@ private slots:
     void on_btn_supprimer_2_clicked();
     void on_tab_employes_clicked(const QModelIndex &index);
 
-    // ── Bois ──────────────────────────────────────────────────────────────
+    // ── Bois (Intégration Fichier 1 + Fichier 2) ──────────────────────────
     void on_la_ajouter_7_clicked();
     void on_la_modifier_7_clicked();
     void on_la_supprimer_7_clicked();
@@ -132,8 +127,11 @@ private slots:
     void on_tab_bois_7_clicked(const QModelIndex &index);
     void on_la_trier_7_clicked();
     void on_la_pdf_9_clicked();
+    void on_poser_7_clicked();             // Provient du fichier 2
+    void on_stat_bois_clicked();           // Provient du fichier 2
+    void on_calcul_decoupage_7_clicked();  // Provient du fichier 2
 
-    // ── Fabrication CRUD ───────────────────────────────────────────────────
+    // ── Fabrication & Suivi (Complet) ─────────────────────────────────────
     void on_btn_ajouter_2_clicked();
     void on_btn_modifier_clicked();
     void on_btn_supprimer_clicked();
@@ -149,15 +147,14 @@ private slots:
     void on_btnTerminerEtape_clicked();
     void on_btnAlertes_clicked();
 
-
 private:
     Ui::MainWindow *ui;
     int m_idSelectionne = -1;
 
-    // ── Connexion ─────────────────────────────────────────────────────────
+    // ── Connexion & Système ───────────────────────────────────────────────
     QSqlDatabase db() const;
 
-    // ── Modeles ───────────────────────────────────────────────────────────
+    // ── Modeles & Analyses ────────────────────────────────────────────────
     void chargerTableauModeles();
     bool validerFormulaire();
     void reinitialiserFormulaire();
@@ -171,10 +168,13 @@ private:
     void clearFields();
     bool controlDeSaisie();
 
-    // ── Bois ──────────────────────────────────────────────────────────────
+    // ── Bois & IA (Intégration Fichier 2) ─────────────────────────────────
     void refreshBoisTable();
+    void appelGroq(const QString &question);
+    void afficherStatsBois();
+    void calculerDecoupage();
 
-    // ── Fabrication helpers ──────────────────────────────────────────────────
+    // ── Fabrication : Logique de base ─────────────────────────────────────
     void loadFabrications();
     void generateFabricationId();
     void clearFabricationFields();
@@ -184,7 +184,7 @@ private:
     int  generateId();
     void exportToPDF();
 
-    // ── Fabrication suivi / timeline / alertes ────────────────────────────
+    // ── Fabrication : Suivi, Timeline & Complexité (Fichier 1) ────────────
     void setupSuivi();
     void buildKPICards();
     void buildEtapeStatusPieChart();
@@ -194,11 +194,8 @@ private:
     void buildFiltresSuivi();
     void loadFabricationsSuivi();
     void chargerTableSuiviAvecComplexite();
-    void loadFabricationsSuiviFiltre(const QString &filtreStatut,
-                                     const QString &filtreQualite,
-                                     const QString &filtreId);
+    void loadFabricationsSuiviFiltre(const QString &filtreStatut, const QString &filtreQualite, const QString &filtreId);
     void afficherPanneauDetail(int fabId);
-    // (Reverted UI helper declarations)
     void reloadAllFabIds();
     QMap<QString, QList<EtapeInfo>> getCatalogue();
     QMap<QString, QList<EtapeInfo>> getCatalogueParModele();
@@ -211,27 +208,15 @@ private:
     bool etapeExisteDeja(int idFabrication, const QString &nomEtape);
     int tempsCatalogue(const QString &nomEtape);
     int currentSelectedFabricationId() const;
-    bool insererEtapeSiAbsente(int fabId,
-                               const EtapeInfo &etape,
-                               const QString &cin = QString(),
-                               const QDate &dateDebut = QDate(),
-                               bool *estNouvelleInsertion = nullptr,
-                               QString *detailErreur = nullptr);
+    bool insererEtapeSiAbsente(int fabId, const EtapeInfo &etape, const QString &cin = QString(), const QDate &dateDebut = QDate(), bool *estNouvelleInsertion = nullptr, QString *detailErreur = nullptr);
     void refreshSuiviAfterChanges(int fabId);
     int cinPersonnelParDefaut() const;
-    QString calculerEtatEtape(const QVariant &dateDebut,
-                              const QVariant &dateFin,
-                              int tempsEstime,
-                              int tempsReel);
+    QString calculerEtatEtape(const QVariant &dateDebut, const QVariant &dateFin, int tempsEstime, int tempsReel);
     QString formaterDate(const QVariant &value);
     QString formaterTexte(const QVariant &value);
     QString couleurEtatEtapeBadge(const QString &etat) const;
     FabricationSuivi getFabricationSuivi(int fabId);
-    void computeTimelineStates(FabricationSuivi &fab,
-                               int *completedSteps = nullptr,
-                               int *currentIndex = nullptr,
-                               int *nextIndex = nullptr,
-                               double *progression = nullptr);
+    void computeTimelineStates(FabricationSuivi &fab, int *completedSteps = nullptr, int *currentIndex = nullptr, int *nextIndex = nullptr, double *progression = nullptr);
     void clearTimeline();
     QWidget* createStepBlock(const EtapeSuivi &etape);
     void buildTimeline(const FabricationSuivi &fab);
@@ -249,9 +234,7 @@ private:
     double calculatePerformanceRatio(double tempsReel, double tempsEstime);
     QString couleurComplexiteBadge(const QString &complexite) const;
     double calculerProgression(int fabId);
-    QString calculerStatutEtape(const QDate &dateDebut,
-                                const QDate &dateFin,
-                                double tempsEstime);
+    QString calculerStatutEtape(const QDate &dateDebut, const QDate &dateFin, double tempsEstime);
     QString calculerStatutFabrication(int fabId);
     int compterEtapesFabrication(int idFabrication);
     int calculerTempsEstimeTotal(int idFabrication);
@@ -268,40 +251,31 @@ private:
     void calculateAndDisplayFabricationPrediction(int fabId);
     void loadEtapesCatalogue();
 
-    // ── Arduino / messages ────────────────────────────────────────────────
+    // ── Arduino ──────────────────────────────────────────────────────────
     void initArduino();
     void envoyerArduino(const QString &message);
     void envoyerBienvenueArduino();
     void envoyerAlertesArduino();
-    void envoyerModificationArduino(const QString &module,
-                                   const QString &operation,
-                                   int id,
-                                   const QString &valeur = QString());
+    void envoyerModificationArduino(const QString &module, const QString &operation, int id, const QString &valeur = QString());
     void notifierChangementArduino(const QString &action, const QString &detail);
 
-    // ── UI helpers ───────────────────────────────────────────────────────────
-    void showAnimatedMessageBox(QMessageBox::Icon icon,
-                                const QString &title,
-                                const QString &text,
-                                const QString &informativeText = "");
+    // ── UI Helpers ────────────────────────────────────────────────────────
+    void showAnimatedMessageBox(QMessageBox::Icon icon, const QString &title, const QString &text, const QString &informativeText = "");
     bool showAnimatedQuestionBox(const QString &title, const QString &text);
 
-    // ── Données membres ──────────────────────────────────────────────────────
-    FabricationSuivi  m_selectedFab;      // Fabrication actuellement sélectionnée
-    bool              m_fabSelected;      // Indique si une fabrication est sélectionnée
+    // ── Données membres ──────────────────────────────────────────────────
+    FabricationSuivi  m_selectedFab;      
+    bool              m_fabSelected;      
 
     QString           m_currentFabricationSearchText;
     QString           currentSortField = QStringLiteral("id_fabrication");
     Qt::SortOrder     currentSortOrder = Qt::AscendingOrder;
 
-    // Liste des IDs de toutes les fabrications
-    QList<int>        m_allFabIds;        // Liste de tous les IDs de fabrication
-    int               m_currentFabIndex;  // Index courant dans la liste (pour navigation)
+    QList<int>        m_allFabIds;        
+    int               m_currentFabIndex;  
     int               m_idEtape = -1;
 
     QList<AlerteInfo> m_alertesCache;
-
-
 };
 
 #endif // MAINWINDOW_H

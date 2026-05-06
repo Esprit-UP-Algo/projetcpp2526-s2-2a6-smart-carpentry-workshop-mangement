@@ -368,7 +368,7 @@ QStatusBar {
      <string notr="true">background-color: transparent;</string>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="sqx"/>
     <widget class="QWidget" name="page_4">
@@ -1134,8 +1134,8 @@ QScrollArea &gt; QWidget &gt; QWidget { background-color: #F5ECD7; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>1187</width>
-                <height>190</height>
+                <width>532</width>
+                <height>40</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="hl_timeline_steps">
@@ -1217,7 +1217,7 @@ QScrollArea &gt; QWidget &gt; QWidget { background-color: #F5ECD7; }
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_gestion_7">
        <attribute name="title">
@@ -1875,14 +1875,17 @@ QComboBox QAbstractItemView {
          <string>Exporter Stats</string>
         </property>
        </widget>
-       <widget class="QTextEdit" name="textEdit_bois">
+       <widget class="QLabel" name="textEdit_bois">
         <property name="geometry">
          <rect>
-          <x>70</x>
-          <y>50</y>
-          <width>891</width>
-          <height>411</height>
+          <x>20</x>
+          <y>20</y>
+          <width>981</width>
+          <height>441</height>
          </rect>
+        </property>
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </widget>
@@ -1976,7 +1979,7 @@ QComboBox QAbstractItemView {
         <widget class="QPushButton" name="calcul_decoupage_7">
          <property name="geometry">
           <rect>
-           <x>310</x>
+           <x>460</x>
            <y>80</y>
            <width>210</width>
            <height>48</height>
@@ -1998,6 +2001,41 @@ QComboBox QAbstractItemView {
            <height>391</height>
           </rect>
          </property>
+        </widget>
+        <widget class="QComboBox" name="la_modele_7">
+         <property name="geometry">
+          <rect>
+           <x>300</x>
+           <y>90</y>
+           <width>121</width>
+           <height>28</height>
+          </rect>
+         </property>
+         <item>
+          <property name="text">
+           <string>Table</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Armoire</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Chaise</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Bureau</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Bibliothèque</string>
+          </property>
+         </item>
         </widget>
        </widget>
       </widget>
