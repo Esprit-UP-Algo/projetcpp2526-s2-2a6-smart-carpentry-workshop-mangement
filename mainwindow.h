@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -37,10 +37,12 @@
 #include <QInputDialog>
 #include <QGraphicsDropShadowEffect>
 #include <QSet>
+#include <QtCharts/QChartView>
 
 #include "modele.h"
 #include "personnel.h"
 #include "bois.h"
+#include<arduino.h>
 
 // Forward declaration
 QT_BEGIN_NAMESPACE
@@ -114,10 +116,22 @@ private slots:
     void on_btn_export_pdf_modele_clicked();
 
     // ── Personnel ─────────────────────────────────────────────────────────
-    void on_btn_ajouter_3_clicked();
+    void on_btn_ajouter_4_clicked();
     void on_btn_modifier_2_clicked();
-    void on_btn_supprimer_2_clicked();
+    void on_btn_supprimer_3_clicked();
     void on_tab_employes_clicked(const QModelIndex &index);
+    void on_btn_affecter_clicked();
+    void on_btn_retirer_clicked();
+    void on_btn_changer_statut_clicked();
+    void on_cb_fabrication_metier_currentIndexChanged(int index);
+    void on_cb_filtre_etat_currentIndexChanged(int index);
+    void on_recherche_pers_textChanged(const QString &arg1);
+
+    void on_btn_trier_5_clicked();
+
+    void on_btn_export_pers_clicked();
+    //void onUidRecu(QString uid);
+    //void onAccesTermine();
 
     // ── Bois (Intégration Fichier 1 + Fichier 2) ──────────────────────────
     void on_la_ajouter_7_clicked();
@@ -147,6 +161,7 @@ private slots:
     void on_btnTerminerEtape_clicked();
     void on_btnAlertes_clicked();
 
+
 private:
     Ui::MainWindow *ui;
     int m_idSelectionne = -1;
@@ -167,6 +182,18 @@ private:
     void refreshTable();
     void clearFields();
     bool controlDeSaisie();
+    void rafraichirStats();
+    QChartView *m_chartViewPoste;
+    QChartView *m_chartViewEmbauche;
+    void afficherStatPoste();
+    void afficherStatEmbauche();
+    void chargerFabrications();
+    void chargerEtapesPersonnel(int idFab);
+    void chargerEmployes();
+    void afficherAffectations(const QString &filtre = "Tous les états");
+    void mettreAJourStats();
+    void on_tab_affectations_clicked(const QModelIndex &index);
+    QTimer *m_timerMetier;
 
     // ── Bois & IA (Intégration Fichier 2) ─────────────────────────────────
     void refreshBoisTable();
@@ -252,6 +279,14 @@ private:
     void loadEtapesCatalogue();
 
     // ── Arduino ──────────────────────────────────────────────────────────
+    Arduino *m_arduino;
+    QTimer *m_timerPersonnel;
+
+    // Slots existants
+    void onUidRecu(QString uid);
+    void onAccesTermine();
+
+    // Fonctions notifier existantes (inchangees)
     void initArduino();
     void envoyerArduino(const QString &message);
     void envoyerBienvenueArduino();

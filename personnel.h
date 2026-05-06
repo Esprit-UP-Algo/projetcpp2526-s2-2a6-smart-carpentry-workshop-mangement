@@ -5,7 +5,10 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QDate> // Pour QDate
-
+#include <QPrinter>
+#include <QPainter>
+#include <QFileDialog>
+#include <QAbstractItemModel>
 class Personnel
 {
 public:
@@ -15,6 +18,8 @@ public:
     // Méthodes CRUD
     bool ajouter();
     QSqlQueryModel * afficher();
+    QSqlQueryModel * rechercher(const QString &texte);
+    QSqlQueryModel * trier(const QString &critere);
     bool supprimer(int cin_a_supprimer);
     bool modifier();
 

@@ -1,4 +1,4 @@
-#include "personnel.h"
+﻿#include "personnel.h"
 #include <QDebug>
 #include <QSqlError> // Pour QSqlError
 
@@ -59,7 +59,7 @@ QSqlQueryModel * Personnel::afficher()
 
     // 1. On sélectionne TOUTES les colonnes dans l'ordre souhaité
     model->setQuery("SELECT TO_CHAR(CIN) AS CIN, NOM, PRENOM, DATENAISSANCE, POSTE, "
-                    "DATEEMBAUCHE, SALAIRE, TO_CHAR(NUMTEL) AS NUMTEL, RFID FROM PERSONNEL");
+                    "DATEEMBAUCHE, SALAIRE, TO_CHAR(NUMTEL) AS NUMTEL, RFID, ACCES FROM PERSONNEL");
 
     if (model->lastError().isValid()) {
         qDebug() << "ERREUR SQL AFFICHAGE :" << model->lastError().text();
@@ -75,6 +75,7 @@ QSqlQueryModel * Personnel::afficher()
     model->setHeaderData(6, Qt::Horizontal, QObject::tr("Salaire"));
     model->setHeaderData(7, Qt::Horizontal, QObject::tr("Téléphone"));
     model->setHeaderData(8, Qt::Horizontal, QObject::tr("RFID"));
+    model->setHeaderData(9, Qt::Horizontal, QObject::tr("ACCES"));
 
     return model;
 }
@@ -120,4 +121,80 @@ bool Personnel::modifier()
         return false;
     }
     return true;
+}
+QSqlQueryModel * Personnel::rechercher(const QString &texte)
+{
+    QSqlQueryModel * model = new QSqlQueryModel();
+    QSqlQuery query;
+
+    query.prepare("SELECT TO_CHAR(CIN) AS CIN, NOM, PRENOM, DATENAISSANCE, POSTE, "
+                  "DATEEMBAUCHE, SALAIRE, TO_CHAR(NUMTEL) AS NUMTEL, RFID "
+                  "FROM PERSONNEL "
+                  "WHERE TO_CHAR(CIN) LIKE :texte "
+                  "OR UPPER(NOM) LIKE UPPER(:texte2) "
+                  "OR UPPER(POSTE) LIKE UPPER(:texte3)");
+
+    QString filtre = "%" + texte + "%";
+    query.bindValue(":texte", filtre);
+    query.bindValue(":texte2", filtre);
+    query.bindValue(":texte3", filtre);
+
+    if (!query.exec()) {
+        qDebug() << "ERREUR SQL RECHERCHE :" << query.lastError().text();
+    }
+
+    model->setQuery(std::move(query));
+
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("CIN"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Prénom"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Date Naissance"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Poste"));
+    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Date Embauche"));
+    model->setHeaderData(6, Qt::Horizontal, QObject::tr("Salaire"));
+    model->setHeaderData(7, Qt::Horizontal, QObject::tr("Téléphone"));
+    model->setHeaderData(8, Qt::Horizontal, QObject::tr("RFID"));
+
+    return model;
+}
+QSqlQueryModel * Personnel::trier(const QString &critere)
+{
+    QSqlQueryModel * model = new QSqlQueryModel();
+    QString ordre;
+
+    // 1. On corrige les textes pour qu'ils soient identiques au ComboBox
+    if (critere == "Date Naissance") {
+        ordre = "DATENAISSANCE DESC";
+    }
+    else if (critere == "Salaire") {
+        ordre = "SALAIRE DESC";
+    }
+    else if (critere == "Date Embauche") {
+        ordre = "DATEEMBAUCHE DESC";
+    }
+    else {
+        ordre = "NOM ASC"; // Tri par défaut
+    }
+
+    // 2. La requête SQL reste la même
+    model->setQuery("SELECT TO_CHAR(CIN) AS CIN, NOM, PRENOM, DATENAISSANCE, POSTE, "
+                    "DATEEMBAUCHE, SALAIRE, TO_CHAR(NUMTEL) AS NUMTEL, RFID "
+                    "FROM PERSONNEL ORDER BY " + ordre);
+
+    if (model->lastError().isValid()) {
+        qDebug() << "ERREUR SQL TRI :" << model->lastError().text();
+    }
+
+    // 3. Titres des colonnes
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("CIN"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Nom"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Prénom"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Date Naissance"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Poste"));
+    model->setHeaderData(5, Qt::Horizontal, QObject::tr("Date Embauche"));
+    model->setHeaderData(6, Qt::Horizontal, QObject::tr("Salaire"));
+    model->setHeaderData(7, Qt::Horizontal, QObject::tr("Téléphone"));
+    model->setHeaderData(8, Qt::Horizontal, QObject::tr("RFID"));
+
+    return model;
 }

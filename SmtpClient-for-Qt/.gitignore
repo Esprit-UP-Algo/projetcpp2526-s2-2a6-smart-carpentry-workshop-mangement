@@ -1,0 +1,8 @@
+*.o
+*.so
+*.so.*
+Makefile
+moc_*.cpp
+*.pro.user*
+# CMake build directory
+build/

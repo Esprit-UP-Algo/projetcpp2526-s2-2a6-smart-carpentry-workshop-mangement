@@ -27,7 +27,7 @@ bool Connexion::createconnect()
 {
     // Utilisez les identifiants que nous avons configurés précédemment
     db.setDatabaseName("WoodPilot");
-    db.setUserName("WoodPilot");
+    db.setUserName("hedi");
     db.setPassword("123");
 
     if (db.open()) {

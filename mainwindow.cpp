@@ -1,7 +1,7 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "connexion.h"
-#include "arduino_notifier.h"
+#include "arduino.h"
 
 // Qt Core / Utils
 #include <QDebug>
@@ -86,6 +86,38 @@
 // STL
 #include <algorithm>
 #include <functional>
+
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QMessageBox>
+#include <QPrinter>
+#include <QPainter>
+#include <QPainterPath>
+#include <QFileDialog>
+#include <QDateTime>
+#include <QDebug>
+#include <QLabel>
+#include <QPixmap>
+#include <QRegularExpression>
+#include <QHeaderView>
+#include <QTextDocument>
+#include <QtMath>
+#include <QScrollArea>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QUrl>
+#include <QTimer>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
+#include <QPrinter>
+#include <QPainter>
+#include <QFileDialog>
+#include <QMessageBox>
 
 static const QString STYLE_MSG = R"(
     QMessageBox { background-color: #EDE0C8; }
@@ -239,8 +271,30 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    initArduino();
-    envoyerBienvenueArduino();
+        // ── Arduino #1 RFID sur COM9 ─────────────────────────────────────
+        m_arduino = new Arduino(this);
+        if (m_arduino->connecter("COM9")) {
+            qDebug() << "Arduino RFID connecte sur COM9";
+        } else {
+            QMessageBox::warning(this, "Arduino RFID",
+                "Impossible de connecter Arduino RFID sur COM9.");
+        }
+        connect(m_arduino, &Arduino::uidRecu, this, &MainWindow::onUidRecu);
+        connect(m_arduino, &Arduino::accesTermine, this, &MainWindow::onAccesTermine);
+
+        // ── Arduino #2 LCD Notifier sur COM10 ────────────────────────────
+        initArduino();  // appelle initArduinoNotifier("COM10")
+        envoyerBienvenueArduino();
+
+        // Timer rafraichissement table personnel
+        m_timerPersonnel = new QTimer(this);
+        connect(m_timerPersonnel, &QTimer::timeout, this, [=]() {
+            if (ui->tabWidget_3->currentIndex() == 0) {
+                Personnel p;
+                ui->tab_rech_4->setModel(p.afficher());
+            }
+        });
+        m_timerPersonnel->start(3000);
 
     connect(ui->btn_bois,        &QPushButton::clicked, this, [=]() { ui->stackedWidget->setCurrentWidget(ui->page);   });
     connect(ui->btn_modele,      &QPushButton::clicked, this, [=]() { ui->stackedWidget->setCurrentWidget(ui->page_6); afficherStatistiques(); });
@@ -273,8 +327,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->table_modeles->setHorizontalHeaderLabels(
         {"ID","Nom","Type","ID Bois","Longueur","Largeur","Hauteur","Date creation","Cree par"});
 
-    ui->tab_rech_3->setStyleSheet("QTableView { color: black; background-color: white; }");
-    ui->tab_rech_3->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tab_rech_4->setStyleSheet("QTableView { color: black; background-color: white; }");
+    ui->tab_rech_4->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     ui->tab_rech_2->setStyleSheet("QTableView { color: black; background-color: white; }");
     ui->tab_rech_2->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -307,10 +361,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->le_hauteur, &QLineEdit::textChanged, this, [=](const QString &txt) {
         bool ok; double v = txt.toDouble(&ok); setFieldStyle(ui->le_hauteur, ok && v > 0);
     });
-    connect(ui->le_créepar, &QLineEdit::textChanged, this, [=](const QString &txt) {
+    connect(ui->le_creepar, &QLineEdit::textChanged, this, [=](const QString &txt) {
         bool ok = txt.trimmed().length() >= 2 &&
                   QRegularExpression("^[a-zA-ZÀ-ÿ\\s]+$").match(txt.trimmed()).hasMatch();
-        setFieldStyle(ui->le_créepar, ok);
+        setFieldStyle(ui->le_creepar, ok);
     });
 
     if (!Connexion::createInstance().createconnect()) {
@@ -352,7 +406,7 @@ MainWindow::MainWindow(QWidget *parent)
         msgInfo(this, "Mode Ajout", "Champs reinitialises.");
     });
 
-    connect(ui->tab_rech_3, &QTableView::clicked, this, &MainWindow::on_tab_employes_clicked);
+    connect(ui->tab_rech_4, &QTableView::clicked, this, &MainWindow::on_tab_employes_clicked);
     connect(ui->tab_rech_2, &QTableView::clicked, this, &MainWindow::on_tab_bois_7_clicked);
 
     connect(ui->table_modeles_2, &QTableWidget::cellClicked, this, &MainWindow::on_table_modeles_2_cellClicked);
@@ -360,6 +414,56 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btn_rechercher_6, &QPushButton::clicked, this, [=]() { filterFabrications(ui->rech_7->text()); });
     connect(ui->btn_tire_2, &QPushButton::clicked, this, [=]() { sortFabrications(ui->cb_critere_recherche_modele_2->currentText()); });
     connect(ui->btn_export_pdf_modele_2, &QPushButton::clicked, this, &MainWindow::exportToPDF);
+    // ── Onglet Métier (Affectation) ────────────────────────────────────
+        chargerFabrications();
+        chargerEmployes();
+        afficherAffectations();
+        mettreAJourStats();
+        rafraichirStats();
+
+        // Timer refresh instantané toutes les 2 secondes
+        m_timerMetier = new QTimer(this);
+        connect(m_timerMetier, &QTimer::timeout, this, [=]() {
+            afficherAffectations(ui->cb_filtre_etat->currentText());
+            mettreAJourStats();
+        });
+        m_timerMetier->start(2000);
+
+        // Filtre état
+        connect(ui->cb_filtre_etat,
+                QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, &MainWindow::on_cb_filtre_etat_currentIndexChanged);
+
+        // Fabrication cascade → étapes
+        connect(ui->cb_fabrication_metier,
+                QOverload<int>::of(&QComboBox::currentIndexChanged),
+                this, &MainWindow::on_cb_fabrication_metier_currentIndexChanged);
+
+        // Clic sur ligne du tableau affectations
+        connect(ui->tab_affectations, &QTableView::clicked,
+                this, &MainWindow::on_tab_affectations_clicked);
+
+        // Style popup clair
+        qApp->setStyleSheet(
+            "QMessageBox {"
+            "  background-color: #FFFFFF;"
+            "  color: #333333;"
+            "}"
+            "QMessageBox QLabel {"
+            "  color: #333333;"
+            "  font-size: 13px;"
+            "}"
+            "QMessageBox QPushButton {"
+            "  background-color: #6B3A1F;"
+            "  color: #FFFFFF;"
+            "  border-radius: 6px;"
+            "  padding: 6px 20px;"
+            "  font-weight: bold;"
+            "}"
+            "QMessageBox QPushButton:hover {"
+            "  background-color: #8B4513;"
+            "}"
+        );
 }
 
 MainWindow::~MainWindow() { delete ui; }
@@ -379,17 +483,6 @@ void MainWindow::refreshBoisTable()
     ui->tab_rech_2->horizontalHeader()->setStretchLastSection(true);
     ui->tab_rech_2->setStyleSheet("QTableView { color: black; background-color: white; }");
 }
-void MainWindow::refreshTable() { Personnel P; ui->tab_rech_3->setModel(P.afficher()); }
-
-void MainWindow::on_btn_ajouter_3_clicked()
-{
-    if (!controlDeSaisie()) return;
-    Personnel P(ui->le_cin->text().toInt(),ui->le_nom_2->text(),ui->le_prenom->text(),
-                ui->de_naissance->date(),ui->cb_poste->currentText(),ui->de_embauche->date(),
-                ui->le_salaire->text().toInt(),ui->le_tel->text().toInt(),ui->le_rfid->text());
-    if (P.ajouter()) { QMessageBox::information(this,"Succes","Employe ajoute !"); envoyerModificationArduino("PERS", "AJOUT", ui->le_cin->text().toInt(), ui->le_nom_2->text()); refreshTable(); clearFields(); }
-    else QMessageBox::critical(this,"Erreur","L'ajout a echoue.");
-}
 
 void MainWindow::on_la_trier_7_clicked()
 {
@@ -404,26 +497,80 @@ void MainWindow::on_la_trier_7_clicked()
 
 void MainWindow::on_la_pdf_9_clicked()
 {
-    QAbstractItemModel *model=ui->tab_rech_2->model();
-    if (!model) { QMessageBox::warning(this,"Erreur","Aucune donnee a exporter."); return; }
-    QString fileName=QFileDialog::getSaveFileName(this,"Enregistrer PDF","Bois_Export.pdf","PDF Files (*.pdf)");
+    QString fileName = QFileDialog::getSaveFileName(this, "Enregistrer PDF",
+                                                     "Bois_Export.pdf", "PDF Files (*.pdf)");
     if (fileName.isEmpty()) return;
-    QString html="<h2 style='text-align:center;'>Liste des Bois - WoodPilot</h2>";
-    html+="<table border='1' cellspacing='0' cellpadding='4' width='100%'>";
-    html+="<tr style='background-color:#5c3317; color:white;'>";
-    for (int c=0;c<model->columnCount();c++) html+="<th>"+model->headerData(c,Qt::Horizontal).toString()+"</th>";
-    html+="</tr>";
-    for (int r=0;r<model->rowCount();r++) {
-        html+=(r%2==0)?"<tr>":"<tr style='background-color:#f5f0eb;'>";
-        for (int c=0;c<model->columnCount();c++) html+="<td>"+model->data(model->index(r,c)).toString()+"</td>";
-        html+="</tr>";
+
+    // Charger les donnees directement depuis la BDD
+    QSqlQuery query;
+    if (!query.exec("SELECT idbois, nomBois, typeBois, longueur, largeur, "
+                    "epaisseur, etatBois, prixUnitaire, "
+                    "TO_CHAR(dateEntree,'DD/MM/YYYY') AS dateEntree, "
+                    "fournisseur, emplacementStock FROM TypeBois ORDER BY idbois")) {
+        QMessageBox::critical(this, "Erreur", "Erreur lecture BDD :\n" + query.lastError().text());
+        return;
     }
-    html+="</table>";
+
+    QStringList headers = {"ID", "Nom", "Type", "Longueur", "Largeur",
+                           "Epaisseur", "Etat", "Prix Unitaire",
+                           "Date Entree", "Fournisseur", "Emplacement"};
+    int cols = headers.size();
+
+    // Stocker toutes les lignes
+    QList<QStringList> lignes;
+    while (query.next()) {
+        QStringList row;
+        for (int c = 0; c < cols; c++)
+            row << query.value(c).toString();
+        lignes << row;
+    }
+    query.finish();
+
+    if (lignes.isEmpty()) {
+        QMessageBox::warning(this, "Erreur", "Aucun bois dans la base de donnees.");
+        return;
+    }
+
+    // Construire le HTML
+    QString html = "<h2 style='text-align:center; color:#5c3317;'>Liste des Bois - WoodPilot</h2>";
+    html += "<p style='text-align:center; color:#7F4129;'>"
+            "Date : " + QDate::currentDate().toString("dd/MM/yyyy") +
+            " | Total : " + QString::number(lignes.size()) + " bois</p>";
+
+    html += "<table border='1' cellspacing='0' cellpadding='6' width='100%' "
+            "style='border-collapse:collapse; font-family:Arial;'>";
+
+    // En-tetes
+    html += "<tr style='background-color:#5c3317; color:white; font-weight:bold;'>";
+    for (const QString &h : headers)
+        html += "<th>" + h + "</th>";
+    html += "</tr>";
+
+    // Donnees
+    for (int r = 0; r < lignes.size(); r++) {
+        html += (r % 2 == 0) ? "<tr style='background-color:#ffffff;'>"
+                             : "<tr style='background-color:#f5f0eb;'>";
+        for (const QString &val : lignes[r])
+            html += "<td style='color:#2E1A00;'>" + val + "</td>";
+        html += "</tr>";
+    }
+    html += "</table>";
+
+    // Pied de page
+    html += "<p style='text-align:center; margin-top:20px; color:#7F4129; font-style:italic;'>"
+            "WoodPilot - Gestion de Stock Bois</p>";
+
+    // Generer PDF
     QPrinter printer(QPrinter::HighResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat); printer.setOutputFileName(fileName);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
     printer.setPageOrientation(QPageLayout::Landscape);
-    QTextDocument doc; doc.setHtml(html); doc.print(&printer);
-    QMessageBox::information(this,"Succes","PDF exporte !");
+
+    QTextDocument doc;
+    doc.setHtml(html);
+    doc.print(&printer);
+
+    QMessageBox::information(this, "Succes", "PDF exporte avec succes !");
 }
 
 void MainWindow::on_la_ajouter_7_clicked()
@@ -483,48 +630,107 @@ void MainWindow::on_tab_bois_7_clicked(const QModelIndex &index)
     ui->la_emplacement_7->setText(get(10).toString());
 }
 
+//Module personnel
+void MainWindow::refreshTable() { Personnel P; ui->tab_rech_4->setModel(P.afficher()); }
+
+void MainWindow::clearFields() {
+    ui->le_cin_2->clear(); ui->le_nom_3->clear(); ui->le_prenom_2->clear();
+    ui->le_salaire_2->clear(); ui->le_tel_2->clear(); ui->le_rfid_2->clear();
+}
+
+void MainWindow::on_btn_ajouter_4_clicked()
+{
+    if (!controlDeSaisie()) return;
+    Personnel P(ui->le_cin_2->text().toInt(),ui->le_nom_3->text(),ui->le_prenom_2->text(),
+                ui->de_naissance_2->date(),ui->cb_poste_2->currentText(),ui->de_embauche_2->date(),
+                ui->le_salaire_2->text().toInt(),ui->le_tel_2->text().toInt(),ui->le_rfid_2->text());
+    if (P.ajouter()) { QMessageBox::information(this,"Succes","Employe ajoute !"); refreshTable(); clearFields(); }
+    else QMessageBox::critical(this,"Erreur","L'ajout a echoue.");
+    rafraichirStats();
+}
 
 void MainWindow::on_btn_modifier_2_clicked()
 {
     if (!controlDeSaisie()) return;
-    Personnel P(ui->le_cin->text().toInt(),ui->le_nom_2->text(),ui->le_prenom->text(),
-                ui->de_naissance->date(),ui->cb_poste->currentText(),ui->de_embauche->date(),
-                ui->le_salaire->text().toInt(),ui->le_tel->text().toInt(),ui->le_rfid->text());
-    if (P.modifier()) { QMessageBox::information(this,"Succes","Employe mis a jour."); envoyerModificationArduino("PERS", "MOD", ui->le_cin->text().toInt(), ui->le_nom_2->text()); refreshTable(); }
+    Personnel P(ui->le_cin_2->text().toInt(),ui->le_nom_3->text(),ui->le_prenom_2->text(),
+                ui->de_naissance_2->date(),ui->cb_poste_2->currentText(),ui->de_embauche_2->date(),
+                ui->le_salaire_2->text().toInt(),ui->le_tel_2->text().toInt(),ui->le_rfid_2->text());
+    if (P.modifier()) { QMessageBox::information(this,"Succes","Employe mis a jour."); refreshTable(); }
     else QMessageBox::critical(this,"Erreur","La modification a echoue.");
+    rafraichirStats();
 }
 
-void MainWindow::on_btn_supprimer_2_clicked()
+void MainWindow::on_btn_supprimer_3_clicked()
 {
-    int cin=ui->le_cin->text().toInt();
+    int cin=ui->le_cin_2->text().toInt();
     if (cin==0) { QMessageBox::warning(this,"Avertissement","Veuillez saisir un CIN."); return; }
     Personnel P;
-    if (P.supprimer(cin)) { QMessageBox::information(this,"Succes","Employe supprime."); envoyerModificationArduino("PERS", "SUPP", cin, "SUPPRIME"); refreshTable(); }
+    if (P.supprimer(cin)) { QMessageBox::information(this,"Succes","Employe supprime."); refreshTable(); }
     else QMessageBox::critical(this,"Erreur","La suppression a echoue.");
+    rafraichirStats();
 }
 
 void MainWindow::on_tab_employes_clicked(const QModelIndex &index)
 {
-    int row=index.row();
-    auto getData=[&](int col)->QString{
-        return ui->tab_rech_3->model()->data(ui->tab_rech_3->model()->index(row,col)).toString(); };
-    ui->le_cin->setText(getData(0)); ui->le_nom_2->setText(getData(1)); ui->le_prenom->setText(getData(2));
-    QDate dn=QDate::fromString(getData(3),"yyyy-MM-dd");
-    if (!dn.isValid()) dn=QDate::fromString(getData(3),"dd/MM/yyyy");
-    ui->de_naissance->setDate(dn.isValid()?dn:QDate::currentDate());
-    ui->cb_poste->setCurrentText(getData(4));
-    QDate de=QDate::fromString(getData(5),"yyyy-MM-dd");
-    if (!de.isValid()) de=QDate::fromString(getData(5),"dd/MM/yyyy");
-    ui->de_embauche->setDate(de.isValid()?de:QDate::currentDate());
-    ui->le_salaire->setText(getData(6)); ui->le_tel->setText(getData(7)); ui->le_rfid->setText(getData(8));
+    int row = index.row();
+    auto getData = [&](int col) -> QString {
+        return ui->tab_rech_4->model()->data(ui->tab_rech_4->model()->index(row, col)).toString();
+    };
+
+    ui->le_cin_2->setText(getData(0));
+    ui->le_nom_3->setText(getData(1));
+    ui->le_prenom_2->setText(getData(2));
+
+    // Parser la date avec plusieurs formats possibles
+    QString dateNaisStr = getData(3);
+    QDate dn;
+    // Essayer tous les formats possibles
+    QStringList formats = {
+        "yyyy-MM-dd",
+        "dd/MM/yyyy",
+        "MM/dd/yyyy",
+        "yyyy-MM-ddTHH:mm:ss",
+        "yyyy-MM-ddTHH:mm:ss.z",
+        "dd-MM-yyyy",
+        "d/M/yyyy"
+    };
+    for (const QString &fmt : formats) {
+        dn = QDate::fromString(dateNaisStr, fmt);
+        if (dn.isValid()) break;
+    }
+    // Si aucun format ne marche, essayer QDateTime
+    if (!dn.isValid()) {
+        QDateTime dt = QDateTime::fromString(dateNaisStr, Qt::ISODate);
+        if (dt.isValid()) dn = dt.date();
+    }
+    ui->de_naissance_2->setDate(dn.isValid() ? dn : QDate::currentDate());
+
+    ui->cb_poste_2->setCurrentText(getData(4));
+
+    // Même chose pour date embauche
+    QString dateEmbStr = getData(5);
+    QDate de;
+    for (const QString &fmt : formats) {
+        de = QDate::fromString(dateEmbStr, fmt);
+        if (de.isValid()) break;
+    }
+    if (!de.isValid()) {
+        QDateTime dt = QDateTime::fromString(dateEmbStr, Qt::ISODate);
+        if (dt.isValid()) de = dt.date();
+    }
+    ui->de_embauche_2->setDate(de.isValid() ? de : QDate::currentDate());
+
+    ui->le_salaire_2->setText(getData(6));
+    ui->le_tel_2->setText(getData(7));
+    ui->le_rfid_2->setText(getData(8));
 }
 
 bool MainWindow::controlDeSaisie()
 {
-    QString cin=ui->le_cin->text(),nom=ui->le_nom_2->text(),prenom=ui->le_prenom->text();
-    QString tel=ui->le_tel->text(),salaire=ui->le_salaire->text();
-    QDate dn=ui->de_naissance->date(),de=ui->de_embauche->date();
-    QString poste=ui->cb_poste->currentText();
+    QString cin=ui->le_cin_2->text(),nom=ui->le_nom_3->text(),prenom=ui->le_prenom_2->text();
+    QString tel=ui->le_tel_2->text(),salaire=ui->le_salaire_2->text();
+    QDate dn=ui->de_naissance_2->date(),de=ui->de_embauche_2->date();
+    QString poste=ui->cb_poste_2->currentText();
     if (cin.isEmpty()||nom.isEmpty()||prenom.isEmpty()||tel.isEmpty()||salaire.isEmpty()) {
         QMessageBox::warning(this,"Erreur","Tous les champs obligatoires doivent etre remplis."); return false; }
     if (!QRegularExpression("^[0-9]{8}$").match(cin).hasMatch()) {
@@ -545,11 +751,571 @@ bool MainWindow::controlDeSaisie()
     return true;
 }
 
-void MainWindow::clearFields() {
-    ui->le_cin->clear(); ui->le_nom_2->clear(); ui->le_prenom->clear();
-    ui->le_salaire->clear(); ui->le_tel->clear(); ui->le_rfid->clear();
+void MainWindow::on_recherche_pers_textChanged(const QString &arg1)
+{
+    QString texte = ui->recherche_pers->text().trimmed();
+    Personnel p;
+
+    if (texte.isEmpty()) {
+        // Si vide, afficher tout
+        ui->tab_rech_4->setModel(p.afficher());
+    } else {
+        ui->tab_rech_4->setModel(p.rechercher(texte));
+    }
+}
+void MainWindow::on_btn_trier_5_clicked()
+{
+    QString critere = ui->cb_tri_2->currentText();
+    Personnel p;
+    ui->tab_rech_4->setModel(p.trier(critere));
+}
+void MainWindow::on_btn_export_pers_clicked()
+{
+    QString fichier = QFileDialog::getSaveFileName(this, "Exporter en PDF", "rapport_personnel.pdf", "Fichiers PDF (*.pdf)");
+    if (fichier.isEmpty()) return;
+
+    // Charger les données directement depuis la BDD
+    QSqlQuery query;
+    query.exec("SELECT TO_CHAR(CIN) AS CIN, NOM, PRENOM, "
+               "TO_CHAR(DATENAISSANCE,'DD/MM/YYYY') AS DATENAISSANCE, "
+               "POSTE, TO_CHAR(DATEEMBAUCHE,'DD/MM/YYYY') AS DATEEMBAUCHE, "
+               "SALAIRE, TO_CHAR(NUMTEL) AS NUMTEL, RFID, ACCES "
+               "FROM HEDI.PERSONNEL ORDER BY NOM");
+
+    QStringList headers = {"CIN", "Nom", "Prenom", "Date Naissance", "Poste",
+                           "Date Embauche", "Salaire", "Telephone", "RFID", "ACCES"};
+    int cols = headers.size();
+
+    // Stocker toutes les lignes
+    QList<QStringList> lignes;
+    while (query.next()) {
+        QStringList row;
+        for (int c = 0; c < cols; c++)
+            row << query.value(c).toString();
+        lignes << row;
+    }
+    int rows = lignes.size();
+
+    if (rows == 0) {
+        QMessageBox::warning(this, "Export PDF", "Aucun employe dans la base de donnees.");
+        return;
+    }
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fichier);
+    printer.setPageOrientation(QPageLayout::Landscape);
+
+    QPainter painter(&printer);
+
+    int pageWidth = printer.pageRect(QPrinter::DevicePixel).width();
+    int pageHeight = printer.pageRect(QPrinter::DevicePixel).height();
+    int colWidth = pageWidth / cols;
+    int rowHeight = 400;
+    int y = 0;
+
+    QColor marronFonce(101, 67, 33);
+    QColor marronHeader(139, 90, 43);
+    QColor beigeClair(253, 245, 230);
+    QColor blanc(255, 255, 255);
+    QColor grisBordure(180, 180, 180);
+
+    // Bande titre
+    painter.fillRect(QRect(0, 0, pageWidth, 700), marronFonce);
+    QFont titleFont("Arial", 22, QFont::Bold);
+    painter.setFont(titleFont);
+    painter.setPen(Qt::white);
+    painter.drawText(QRect(0, 0, pageWidth, 700), Qt::AlignCenter, "Rapport Personnel - WoodPilot");
+
+    // Ligne decorative
+    y = 700;
+    painter.fillRect(QRect(0, y, pageWidth, 40), QColor(218, 165, 32));
+    y += 40;
+
+    // Date et total
+    y += 150;
+    QFont infoFont("Arial", 10);
+    painter.setFont(infoFont);
+    painter.setPen(marronFonce);
+    painter.drawText(QRect(0, y, pageWidth / 2, 300), Qt::AlignLeft,
+                     "  Total : " + QString::number(rows) + " employe(s)");
+    painter.drawText(QRect(pageWidth / 2, y, pageWidth / 2, 300), Qt::AlignRight,
+                     "Date : " + QDate::currentDate().toString("dd/MM/yyyy") + "  ");
+    y += 500;
+
+    // En-tetes
+    QFont headerFont("Arial", 9, QFont::Bold);
+    painter.setFont(headerFont);
+    for (int j = 0; j < cols; j++) {
+        QRect cellRect(j * colWidth, y, colWidth, rowHeight);
+        painter.fillRect(cellRect, marronHeader);
+        painter.setPen(Qt::white);
+        painter.drawText(cellRect, Qt::AlignCenter, headers[j]);
+    }
+    painter.setPen(QPen(marronFonce, 6));
+    painter.drawLine(0, y + rowHeight, pageWidth, y + rowHeight);
+    y += rowHeight;
+
+    // Donnees
+    QFont dataFont("Arial", 8);
+    painter.setFont(dataFont);
+
+    for (int i = 0; i < rows; i++) {
+        if (y + rowHeight > pageHeight - 400) {
+            painter.fillRect(QRect(0, pageHeight - 300, pageWidth, 300), marronFonce);
+            painter.setPen(Qt::white);
+            painter.setFont(infoFont);
+            painter.drawText(QRect(0, pageHeight - 300, pageWidth, 300), Qt::AlignCenter, "WoodPilot - Gestion De Societe");
+
+            printer.newPage();
+            y = 200;
+
+            painter.setFont(headerFont);
+            for (int j = 0; j < cols; j++) {
+                QRect cellRect(j * colWidth, y, colWidth, rowHeight);
+                painter.fillRect(cellRect, marronHeader);
+                painter.setPen(Qt::white);
+                painter.drawText(cellRect, Qt::AlignCenter, headers[j]);
+            }
+            painter.setPen(QPen(marronFonce, 6));
+            painter.drawLine(0, y + rowHeight, pageWidth, y + rowHeight);
+            y += rowHeight;
+            painter.setFont(dataFont);
+        }
+
+        QColor bgColor = (i % 2 == 0) ? blanc : beigeClair;
+
+        for (int j = 0; j < cols; j++) {
+            QRect cellRect(j * colWidth, y, colWidth, rowHeight);
+            painter.fillRect(cellRect, bgColor);
+            painter.setPen(QPen(grisBordure, 1));
+            painter.drawRect(cellRect);
+            painter.setPen(marronFonce);
+            painter.drawText(cellRect.adjusted(30, 0, -30, 0), Qt::AlignCenter, lignes[i][j]);
+        }
+
+        painter.setPen(QPen(grisBordure, 1));
+        painter.drawLine(0, y + rowHeight, pageWidth, y + rowHeight);
+        y += rowHeight;
+    }
+
+    painter.setPen(QPen(marronFonce, 6));
+    painter.drawLine(0, y, pageWidth, y);
+
+    painter.fillRect(QRect(0, pageHeight - 300, pageWidth, 300), marronFonce);
+    painter.setPen(Qt::white);
+    painter.setFont(infoFont);
+    painter.drawText(QRect(0, pageHeight - 300, pageWidth, 300), Qt::AlignCenter, "WoodPilot - Gestion De Societe");
+
+    painter.end();
+
+    QMessageBox::information(this, "Export PDF", "Le rapport a ete exporte avec succes !");
+}
+void MainWindow::afficherStatPoste()
+{
+    QSqlQuery query;
+    query.exec("SELECT POSTE, COUNT(*) FROM PERSONNEL GROUP BY POSTE");
+
+    QPieSeries *series = new QPieSeries();
+    series->setHoleSize(0.4); // Donut comme l'image
+
+    QList<QColor> couleurs;
+    couleurs << QColor(139, 90, 43)
+             << QColor(218, 165, 32)
+             << QColor(101, 67, 33)
+             << QColor(210, 180, 140)
+             << QColor(160, 82, 45)
+             << QColor(205, 133, 63);
+
+    int i = 0;
+    while (query.next()) {
+        QString poste = query.value(0).toString();
+        int nombre = query.value(1).toInt();
+        QPieSlice *slice = series->append(poste + " (" + QString::number(nombre) + ")", nombre);
+        slice->setLabelVisible(true);
+        slice->setLabelFont(QFont("Arial", 9, QFont::Bold));
+        slice->setColor(couleurs[i % couleurs.size()]);
+        i++;
+    }
+
+    series->setLabelsPosition(QPieSlice::LabelOutside);
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("Répartition des employés par poste");
+    chart->setTitleFont(QFont("Arial", 12, QFont::Bold));
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->legend()->setVisible(false);
+    chart->setMargins(QMargins(5, 5, 5, 5));
+
+    // Cadre autour du graphique
+    m_chartViewPoste = new QChartView(chart);
+    m_chartViewPoste->setRenderHint(QPainter::Antialiasing);
+    m_chartViewPoste->setStyleSheet("border: 1px solid #8B5A2B; border-radius: 8px; background: white;");
+    m_chartViewPoste->setMinimumHeight(250);
+    m_chartViewPoste->setMaximumHeight(350);
 }
 
+void MainWindow::afficherStatEmbauche()
+{
+    QSqlQuery query;
+    query.exec("SELECT POSTE, COUNT(*) FROM PERSONNEL GROUP BY POSTE");
+
+    QBarSeries *barSeries = new QBarSeries();
+    QBarSet *set = new QBarSet("Employés");
+    set->setColor(QColor(139, 90, 43));
+
+    QStringList categories;
+    int maxVal = 0;
+
+    while (query.next()) {
+        QString poste = query.value(0).toString();
+        int nombre = query.value(1).toInt();
+        *set << nombre;
+        categories << poste;
+        if (nombre > maxVal) maxVal = nombre;
+    }
+
+    barSeries->append(set);
+
+    QChart *chart = new QChart();
+    chart->addSeries(barSeries);
+    chart->setTitle("Nombre d'employés par poste");
+    chart->setTitleFont(QFont("Arial", 12, QFont::Bold));
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setMargins(QMargins(5, 5, 5, 5));
+
+    QBarCategoryAxis *axeX = new QBarCategoryAxis();
+    axeX->append(categories);
+    axeX->setLabelsFont(QFont("Arial", 9));
+    chart->addAxis(axeX, Qt::AlignBottom);
+    barSeries->attachAxis(axeX);
+
+    QValueAxis *axeY = new QValueAxis();
+    axeY->setRange(0, maxVal + 2);
+    axeY->setTickCount(maxVal + 3);
+    axeY->setLabelFormat("%d");
+    axeY->setTitleText("Nombre");
+    axeY->setTitleFont(QFont("Arial", 10, QFont::Bold));
+    chart->addAxis(axeY, Qt::AlignLeft);
+    barSeries->attachAxis(axeY);
+
+    chart->legend()->setVisible(false);
+
+    m_chartViewEmbauche = new QChartView(chart);
+    m_chartViewEmbauche->setRenderHint(QPainter::Antialiasing);
+    m_chartViewEmbauche->setStyleSheet("border: 1px solid #8B5A2B; border-radius: 8px; background: white;");
+    m_chartViewEmbauche->setMinimumHeight(250);
+    m_chartViewEmbauche->setMaximumHeight(350);
+}
+void MainWindow::rafraichirStats()
+{
+    afficherStatPoste();
+    afficherStatEmbauche();
+
+    // Mettre à jour le layout de tab_stats_3
+    QVBoxLayout *layoutStats = qobject_cast<QVBoxLayout*>(ui->tab_stats_4->layout());
+    if (layoutStats) {
+        // Nettoyer l'ancien contenu
+        QLayoutItem *item;
+        while ((item = layoutStats->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
+        }
+    } else {
+        delete ui->tab_stats_4->layout();
+        layoutStats = new QVBoxLayout();
+        layoutStats->setContentsMargins(10, 10, 10, 10);
+        layoutStats->setSpacing(10);
+        ui->tab_stats_4->setLayout(layoutStats);
+    }
+
+    layoutStats->addWidget(m_chartViewPoste);
+    layoutStats->addWidget(m_chartViewEmbauche);
+}
+
+void MainWindow::chargerFabrications()
+{
+    ui->cb_fabrication_metier->blockSignals(true);
+    ui->cb_fabrication_metier->clear();
+    QSqlQuery q;
+    q.exec("SELECT IDFABRICATION, ETAT FROM HEDI.FABRICATION ORDER BY IDFABRICATION");
+    while (q.next()) {
+        int id = q.value(0).toInt();
+        QString etat = q.value(1).toString();
+        QString label = "FAB-" + QString::number(id) + " — " + etat;
+        ui->cb_fabrication_metier->addItem(label, id);
+    }
+    ui->cb_fabrication_metier->blockSignals(false);
+
+    int idFab = ui->cb_fabrication_metier->currentData().toInt();
+    chargerEtapesPersonnel(idFab);
+}
+
+void MainWindow::chargerEtapesPersonnel(int idFab)
+{
+    ui->cb_etape_metier->clear();
+    QSqlQuery q;
+    q.prepare("SELECT IDETAPE, ORDRE, NOMETAPE FROM HEDI.ETAPE "
+              "WHERE IDFABRICATION = :id ORDER BY ORDRE");
+    q.bindValue(":id", idFab);
+    q.exec();
+    while (q.next()) {
+        QString label = "Étape " + q.value(1).toString() + " — " + q.value(2).toString();
+        ui->cb_etape_metier->addItem(label, q.value(0).toInt());
+    }
+}
+
+void MainWindow::chargerEmployes()
+{
+    ui->cb_employe_metier->clear();
+    QSqlQuery q;
+    q.exec("SELECT CIN, NOM, PRENOM, POSTE FROM HEDI.PERSONNEL ORDER BY NOM");
+    while (q.next()) {
+        QString label = q.value(0).toString() + " — " +
+                        q.value(1).toString() + " " +
+                        q.value(2).toString() + " — " +
+                        q.value(3).toString();
+        ui->cb_employe_metier->addItem(label, q.value(0).toInt());
+    }
+}
+
+void MainWindow::afficherAffectations(const QString &filtre)
+{
+    QString sql =
+        "SELECT 'FAB-' || F.IDFABRICATION AS FABRICATION, "
+        "E.ORDRE, E.NOMETAPE, "
+        "P.NOM || ' ' || P.PRENOM AS EMPLOYE, P.POSTE, "
+        "TO_CHAR(E.DATEDEBUT,'DD/MM/YYYY') AS DATEDEBUT, "
+        "E.TEMPSESTIME || 'h' AS TEMPS, "
+        "CASE WHEN E.DATEFIN IS NOT NULL THEN 'Terminé' "
+        "WHEN E.DATEDEBUT IS NOT NULL THEN 'En cours' "
+        "ELSE 'Planifié' END AS STATUT "
+        "FROM HEDI.ETAPE E "
+        "JOIN HEDI.FABRICATION F ON E.IDFABRICATION = F.IDFABRICATION "
+        "JOIN HEDI.PERSONNEL P ON E.CIN = P.CIN ";
+
+    if (filtre != "Tous les états") {
+        if (filtre == "Terminé")
+            sql += "WHERE E.DATEFIN IS NOT NULL ";
+        else if (filtre == "En cours")
+            sql += "WHERE E.DATEDEBUT IS NOT NULL AND E.DATEFIN IS NULL ";
+        else if (filtre == "Planifié")
+            sql += "WHERE E.DATEDEBUT IS NULL ";
+    }
+
+    sql += "ORDER BY F.IDFABRICATION, E.ORDRE";
+
+    QSqlQueryModel *model = new QSqlQueryModel();
+    model->setQuery(sql);
+
+    model->setHeaderData(0, Qt::Horizontal, "Fabrication");
+    model->setHeaderData(1, Qt::Horizontal, "Ordre");
+    model->setHeaderData(2, Qt::Horizontal, "Étape");
+    model->setHeaderData(3, Qt::Horizontal, "Employé");
+    model->setHeaderData(4, Qt::Horizontal, "Poste");
+    model->setHeaderData(5, Qt::Horizontal, "Date début");
+    model->setHeaderData(6, Qt::Horizontal, "T.Estimé");
+    model->setHeaderData(7, Qt::Horizontal, "Statut");
+
+    ui->tab_affectations->setModel(model);
+    ui->tab_affectations->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tab_affectations->verticalHeader()->setVisible(false);
+}
+
+void MainWindow::mettreAJourStats()
+{
+    QSqlQuery q;
+
+    q.exec("SELECT COUNT(*) FROM HEDI.ETAPE E "
+           "JOIN HEDI.FABRICATION F ON E.IDFABRICATION = F.IDFABRICATION "
+           "JOIN HEDI.PERSONNEL P ON E.CIN = P.CIN");
+    if (q.next()) ui->lbl_total_etapes->setText(QString::number(q.value(0).toInt()));
+
+    q.exec("SELECT COUNT(*) FROM HEDI.ETAPE E "
+           "JOIN HEDI.FABRICATION F ON E.IDFABRICATION = F.IDFABRICATION "
+           "JOIN HEDI.PERSONNEL P ON E.CIN = P.CIN "
+           "WHERE E.DATEDEBUT IS NULL");
+    if (q.next()) ui->lbl_planifiees->setText(QString::number(q.value(0).toInt()));
+
+    q.exec("SELECT COUNT(*) FROM HEDI.ETAPE E "
+           "JOIN HEDI.FABRICATION F ON E.IDFABRICATION = F.IDFABRICATION "
+           "JOIN HEDI.PERSONNEL P ON E.CIN = P.CIN "
+           "WHERE E.DATEDEBUT IS NOT NULL AND E.DATEFIN IS NULL");
+    if (q.next()) ui->lbl_en_cours->setText(QString::number(q.value(0).toInt()));
+
+    q.exec("SELECT COUNT(*) FROM HEDI.ETAPE E "
+           "JOIN HEDI.FABRICATION F ON E.IDFABRICATION = F.IDFABRICATION "
+           "JOIN HEDI.PERSONNEL P ON E.CIN = P.CIN "
+           "WHERE E.DATEFIN IS NOT NULL");
+    if (q.next()) ui->lbl_terminees->setText(QString::number(q.value(0).toInt()));
+}
+
+void MainWindow::on_cb_fabrication_metier_currentIndexChanged(int index)
+{
+    Q_UNUSED(index);
+    int idFab = ui->cb_fabrication_metier->currentData().toInt();
+    chargerEtapesPersonnel(idFab);
+}
+
+void MainWindow::on_cb_filtre_etat_currentIndexChanged(int index)
+{
+    Q_UNUSED(index);
+    afficherAffectations(ui->cb_filtre_etat->currentText());
+}
+
+void MainWindow::on_btn_affecter_clicked()
+{
+    int idEtape = ui->cb_etape_metier->currentData().toInt();
+    int cin     = ui->cb_employe_metier->currentData().toInt();
+    QString date = ui->de_debut_metier->text();
+    int temps   = ui->sb_temps_metier->text().toInt();
+
+    if (idEtape == 0 || cin == 0) {
+        QMessageBox::warning(this, "Attention", "Veuillez sélectionner une étape et un employé.");
+        return;
+    }
+
+    QSqlQuery q;
+    q.prepare("UPDATE HEDI.ETAPE SET CIN = :cin, "
+              "DATEDEBUT = TO_DATE(:date,'DD/MM/YYYY'), "
+              "TEMPSESTIME = :temps "
+              "WHERE IDETAPE = :id");
+    q.bindValue(":cin",   cin);
+    q.bindValue(":date",  date);
+    q.bindValue(":temps", temps);
+    q.bindValue(":id",    idEtape);
+
+    if (q.exec()) {
+        QMessageBox::information(this, "Succès", "Employé affecté avec succès !");
+        afficherAffectations(ui->cb_filtre_etat->currentText());
+        mettreAJourStats();
+    } else {
+        QMessageBox::critical(this, "Erreur", q.lastError().text());
+    }
+}
+
+void MainWindow::on_btn_retirer_clicked()
+{
+    int idEtape = ui->cb_etape_metier->currentData().toInt();
+
+    if (idEtape == 0) {
+        QMessageBox::warning(this, "Attention", "Veuillez sélectionner une étape.");
+        return;
+    }
+
+    QSqlQuery q;
+    q.prepare("UPDATE HEDI.ETAPE SET CIN = NULL, DATEDEBUT = NULL, "
+              "DATEFIN = NULL, TEMPSREEL = NULL "
+              "WHERE IDETAPE = :id");
+    q.bindValue(":id", idEtape);
+
+    if (q.exec()) {
+        QMessageBox::information(this, "Succès", "Affectation retirée !");
+        afficherAffectations(ui->cb_filtre_etat->currentText());
+        mettreAJourStats();
+    } else {
+        QMessageBox::critical(this, "Erreur", q.lastError().text());
+    }
+}
+
+void MainWindow::on_btn_changer_statut_clicked()
+{
+    int idEtape    = ui->cb_etape_metier->currentData().toInt();
+    QString statut = ui->cb_statut_metier->currentText();
+    QString dateFin = ui->le_datefin_metier->text();
+    int tempsReel   = ui->le_tempsreel_metier->text().toInt();
+
+    if (idEtape == 0) {
+        QMessageBox::warning(this, "Attention", "Veuillez sélectionner une étape.");
+        return;
+    }
+
+    QSqlQuery q;
+    if (statut == "Planifié") {
+        q.prepare("UPDATE HEDI.ETAPE SET DATEDEBUT = NULL, DATEFIN = NULL, "
+                  "TEMPSREEL = NULL WHERE IDETAPE = :id");
+        q.bindValue(":id", idEtape);
+    } else if (statut == "En cours") {
+        q.prepare("UPDATE HEDI.ETAPE SET DATEFIN = NULL, "
+                  "TEMPSREEL = NULL WHERE IDETAPE = :id");
+        q.bindValue(":id", idEtape);
+    } else {
+        if (dateFin.isEmpty()) {
+            QMessageBox::warning(this, "Attention", "Veuillez saisir la date de fin.");
+            return;
+        }
+        q.prepare("UPDATE HEDI.ETAPE SET "
+                  "DATEFIN = TO_DATE(:fin,'DD/MM/YYYY'), "
+                  "TEMPSREEL = :reel WHERE IDETAPE = :id");
+        q.bindValue(":fin",  dateFin);
+        q.bindValue(":reel", tempsReel);
+        q.bindValue(":id",   idEtape);
+    }
+
+    if (q.exec()) {
+        QMessageBox::information(this, "Succès", "Statut mis à jour !");
+        afficherAffectations(ui->cb_filtre_etat->currentText());
+        mettreAJourStats();
+    } else {
+        QMessageBox::critical(this, "Erreur", q.lastError().text());
+    }
+}
+void MainWindow::on_tab_affectations_clicked(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+
+    QAbstractItemModel *model = ui->tab_affectations->model();
+
+    // Récupérer les données de la ligne cliquée
+    QString fabrication = model->data(model->index(index.row(), 0)).toString(); // FAB-6
+    int ordre           = model->data(model->index(index.row(), 1)).toInt();
+    QString dateDebut   = model->data(model->index(index.row(), 5)).toString();
+    QString tempsEstime = model->data(model->index(index.row(), 6)).toString();
+    QString statut      = model->data(model->index(index.row(), 7)).toString();
+
+    // Extraire IDFABRICATION depuis "FAB-6"
+    int idFab = fabrication.remove("FAB-").toInt();
+
+    // Sélectionner la bonne fabrication dans cb_fabrication_metier
+    for (int i = 0; i < ui->cb_fabrication_metier->count(); i++) {
+        if (ui->cb_fabrication_metier->itemData(i).toInt() == idFab) {
+            ui->cb_fabrication_metier->setCurrentIndex(i);
+            break;
+        }
+    }
+
+    // Recharger les étapes de cette fabrication
+    chargerEtapesPersonnel(idFab);
+
+    // Sélectionner la bonne étape selon l'ordre
+    QSqlQuery q;
+    q.prepare("SELECT IDETAPE FROM HEDI.ETAPE "
+              "WHERE IDFABRICATION = :fab AND ORDRE = :ordre");
+    q.bindValue(":fab", idFab);
+    q.bindValue(":ordre", ordre);
+    q.exec();
+    if (q.next()) {
+        int idEtape = q.value(0).toInt();
+        for (int i = 0; i < ui->cb_etape_metier->count(); i++) {
+            if (ui->cb_etape_metier->itemData(i).toInt() == idEtape) {
+                ui->cb_etape_metier->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
+
+    // Remplir les champs
+    // Nettoyer la date (enlever "h" du temps)
+    tempsEstime.remove("h");
+    ui->de_debut_metier->setText(dateDebut);
+    ui->sb_temps_metier->setText(tempsEstime);
+
+    // Remplir le statut dans Changer Statut
+    int idxStatut = ui->cb_statut_metier->findText(statut);
+    if (idxStatut >= 0)
+        ui->cb_statut_metier->setCurrentIndex(idxStatut);
+}
 // ═══════════════════════════════════════════════════════════════════════
 //  MODELES — validerFormulaire
 // ═══════════════════════════════════════════════════════════════════════
@@ -581,11 +1347,11 @@ bool MainWindow::validerFormulaire()
     else if (hau>9999) { setFieldStyle(ui->le_hauteur,false); erreurs<<"• Hauteur : max 9999."; valide=false; }
     else setFieldStyle(ui->le_hauteur,true);
 
-    QString creepar=ui->le_créepar->text().trimmed();
-    if (creepar.isEmpty()) { setFieldStyle(ui->le_créepar,false); erreurs<<"• Cree par : obligatoire."; valide=false; }
-    else if (creepar.length()<2) { setFieldStyle(ui->le_créepar,false); erreurs<<"• Cree par : min 2 car."; valide=false; }
-    else if (!QRegularExpression("^[a-zA-ZÀ-ÿ\\s]+$").match(creepar).hasMatch()) { setFieldStyle(ui->le_créepar,false); erreurs<<"• Cree par : lettres uniquement."; valide=false; }
-    else setFieldStyle(ui->le_créepar,true);
+    QString creepar=ui->le_creepar->text().trimmed();
+    if (creepar.isEmpty()) { setFieldStyle(ui->le_creepar,false); erreurs<<"• Cree par : obligatoire."; valide=false; }
+    else if (creepar.length()<2) { setFieldStyle(ui->le_creepar,false); erreurs<<"• Cree par : min 2 car."; valide=false; }
+    else if (!QRegularExpression("^[a-zA-ZÀ-ÿ\\s]+$").match(creepar).hasMatch()) { setFieldStyle(ui->le_creepar,false); erreurs<<"• Cree par : lettres uniquement."; valide=false; }
+    else setFieldStyle(ui->le_creepar,true);
 
     if (ui->de_date_creation->date()>QDate::currentDate()) { erreurs<<"• Date : pas dans le futur."; valide=false; }
     if (!valide) msgWarn(this,"Erreurs","Veuillez corriger :\n\n"+erreurs.join("\n"));
@@ -595,11 +1361,11 @@ bool MainWindow::validerFormulaire()
 void MainWindow::reinitialiserFormulaire()
 {
     resetField(ui->le_nom_modele); resetField(ui->le_longueur); resetField(ui->le_largeur);
-    resetField(ui->le_hauteur); resetField(ui->le_créepar);
+    resetField(ui->le_hauteur); resetField(ui->le_creepar);
     m_idSelectionne=-1;
     ui->combo_type->setStyleSheet(""); ui->le_nom_modele->clear();
     ui->combo_type->setCurrentIndex(0); ui->le_longueur->clear(); ui->le_largeur->clear();
-    ui->le_hauteur->clear(); ui->le_créepar->clear();
+    ui->le_hauteur->clear(); ui->le_creepar->clear();
     ui->de_date_creation->setDate(QDate::currentDate());
     ui->btn_ajouter_modele->setEnabled(true); ui->btn_ajouter_modele->setToolTip("");
     ui->btn_modifier_modele->setEnabled(false); ui->btn_supprimer_modele->setEnabled(false);
@@ -651,10 +1417,10 @@ void MainWindow::ligneSelectionnee(int row, int)
     ui->le_hauteur->setText(txt(6));          // col6 = HAUTEUR
     QDate d=QDate::fromString(txt(7),"dd/MM/yyyy");
     if (d.isValid()) ui->de_date_creation->setDate(d); // col7 = DATECREATION
-    ui->le_créepar->setText(txt(8));          // col8 = CREEPAR
+    ui->le_creepar->setText(txt(8));          // col8 = CREEPAR
 
     resetField(ui->le_nom_modele); resetField(ui->le_longueur); resetField(ui->le_largeur);
-    resetField(ui->le_hauteur); resetField(ui->le_créepar);
+    resetField(ui->le_hauteur); resetField(ui->le_creepar);
     ui->btn_ajouter_modele->setEnabled(false);
     ui->btn_ajouter_modele->setToolTip("Double-cliquez pour reinitialiser.");
     ui->btn_modifier_modele->setEnabled(true); ui->btn_supprimer_modele->setEnabled(true);
@@ -696,7 +1462,7 @@ void MainWindow::on_btn_ajouter_modele_clicked()
     q.bindValue(":idbois",  idBois);
     q.bindValue(":longueur",vL); q.bindValue(":largeur",vW); q.bindValue(":hauteur",vH);
     q.bindValue(":date",    ui->de_date_creation->date().toString("yyyy-MM-dd"));
-    q.bindValue(":creepar", ui->le_créepar->text().trimmed());
+    q.bindValue(":creepar", ui->le_creepar->text().trimmed());
 
     if (q.exec()) { msgInfo(this,"Succes","Modele ajoute !"); envoyerModificationArduino("MODL", "AJOUT", 0, ui->le_nom_modele->text()); reinitialiserFormulaire(); chargerTableauModeles(); }
     else msgErreur(this,"Erreur INSERT",q.lastError().text());
@@ -732,7 +1498,7 @@ void MainWindow::on_btn_modifier_modele_clicked()
     u.bindValue(":idbois",  idBois);
     u.bindValue(":longueur",vL); u.bindValue(":largeur",vW); u.bindValue(":hauteur",vH);
     u.bindValue(":date",    ui->de_date_creation->date().toString("yyyy-MM-dd"));
-    u.bindValue(":creepar", ui->le_créepar->text().trimmed());
+    u.bindValue(":creepar", ui->le_creepar->text().trimmed());
     u.bindValue(":id",      m_idSelectionne);
 
     if (u.exec()) { msgInfo(this,"Succes","Modele modifie !"); envoyerModificationArduino("MODL", "MOD", m_idSelectionne, ui->le_nom_modele->text()); reinitialiserFormulaire(); chargerTableauModeles(); }
@@ -1501,7 +2267,8 @@ void MainWindow::on_table_modeles_2_cellClicked(int row, int column)
 
 void MainWindow::initArduino()
 {
-    ::initArduino();
+    // Notifier LCD sur COM10 (a ajuster)
+    ::initArduinoNotifier("COM10");
 }
 
 void MainWindow::envoyerArduino(const QString &message)
@@ -4732,3 +5499,47 @@ void MainWindow::calculerDecoupage()
 
     ui->la_textEdit_21->setText(result);
 }
+// arduino rfid
+void MainWindow::onUidRecu(QString uid)
+{
+    uid = uid.toUpper().trimmed();  // Normaliser en majuscules
+
+    QSqlQuery q;
+    q.prepare("SELECT CIN, NOM, PRENOM, POSTE FROM HEDI.PERSONNEL WHERE UPPER(RFID) = :uid");
+    q.bindValue(":uid", uid);
+
+    if (q.exec() && q.next()) {
+        // ACCÈS AUTORISÉ
+        int cin        = q.value(0).toInt();
+        QString nom    = q.value(1).toString();
+        QString prenom = q.value(2).toString();
+        QString poste  = q.value(3).toString();
+
+        QSqlQuery up;
+        up.prepare("UPDATE HEDI.PERSONNEL SET ACCES = 1 WHERE CIN = :cin");
+        up.bindValue(":cin", cin);
+        up.exec();
+
+        m_arduino->envoyerCommande("OK");
+
+        QMessageBox::information(this, "Accès Autorisé",
+                                 "✓ Bienvenue " + nom + " " + prenom + "\n"
+                                                                       "Poste : " + poste + "\n"
+                                               "CIN : " + QString::number(cin));
+    }
+    else {
+        m_arduino->envoyerCommande("KO");
+        QMessageBox::critical(this, "Accès Refusé",
+                              "✗ Carte non reconnue\n"
+                              "UID : " + uid);
+    }
+}
+
+void MainWindow::onAccesTermine()
+{
+    // Le moteur est revenu, remettre ACCES à 0
+    QSqlQuery q;
+    q.exec("UPDATE HEDI.PERSONNEL SET ACCES = 0 WHERE ACCES = 1");
+    qDebug() << "Accès remis à 0";
+}
+
