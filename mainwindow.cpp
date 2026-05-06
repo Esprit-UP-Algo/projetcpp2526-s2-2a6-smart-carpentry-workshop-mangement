@@ -1383,17 +1383,18 @@ void MainWindow::chargerTableauModeles()
     ui->table_modeles->setRowCount(0);
     QSqlQuery query(db());
     if (!query.exec(
-            "SELECT IDMODELE, NOM, TYPE, IDBOIS, LONGUEUR, LARGEUR, HAUTEUR, "
+            "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, LONGUEUR, LARGEUR, HAUTEUR, "
             "TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
-            "FROM MODELE ORDER BY IDMODELE"))
+            "FROM HEDI.MODELE_BOIS ORDER BY ID_MODELE"))
     {
-        msgErreur(this,"Erreur chargement",query.lastError().text()); return;
+        msgErreur(this, "Erreur chargement", query.lastError().text());
+        return;
     }
-    int row=0;
+    int row = 0;
     while (query.next()) {
         ui->table_modeles->insertRow(row);
-        for (int c=0;c<9;c++)
-            ui->table_modeles->setItem(row,c,new QTableWidgetItem(query.value(c).toString()));
+        for (int c = 0; c < 9; c++)
+            ui->table_modeles->setItem(row, c, new QTableWidgetItem(query.value(c).toString()));
         row++;
     }
     ui->table_modeles->setColumnHidden(0, true);
@@ -1430,93 +1431,104 @@ void MainWindow::ligneSelectionnee(int row, int)
 //  MODELES — AJOUTER  (INSERT INTO MODELE)
 // ═══════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════
+//  MODELES — AJOUTER
+// ═══════════════════════════════════════════════════════════════════════
 void MainWindow::on_btn_ajouter_modele_clicked()
 {
-    if (m_idSelectionne>0) {
-        msgWarn(this,"Mode modification","Cliquez sur Modifier ou double-cliquez pour ajouter."); return; }
+    if (m_idSelectionne > 0) {
+        msgWarn(this, "Mode modification", "Cliquez sur Modifier ou double-cliquez pour ajouter.");
+        return;
+    }
     if (!validerFormulaire()) return;
-
-    bool okL,okW,okH;
-    double vL=ui->le_longueur->text().toDouble(&okL);
-    double vW=ui->le_largeur->text().toDouble(&okW);
-    double vH=ui->le_hauteur->text().toDouble(&okH);
-    Q_UNUSED(okL) Q_UNUSED(okW) Q_UNUSED(okH)
-
 
     bool okBois;
     int idBois = ui->le_id_bois->text().toInt(&okBois);
-
     if (!okBois) {
-        msgWarn(this, "Erreur de saisie", "L'ID Bois doit être un nombre valide.");
+        msgWarn(this, "Erreur de saisie", "L'ID Bois doit etre un nombre valide.");
         return;
     }
 
-    QSqlQuery q(db());
-    q.prepare(
-        "INSERT INTO MODELE (IDMODELE, NOM, TYPE, IDBOIS, "
-        "LONGUEUR, LARGEUR, HAUTEUR, DATECREATION, CREEPAR) "
-        "VALUES (seq_modele.NEXTVAL, :nom, :type, :idbois, "
-        ":longueur, :largeur, :hauteur, TO_DATE(:date,'YYYY-MM-DD'), :creepar)");
-    q.bindValue(":nom",     ui->le_nom_modele->text().trimmed());
-    q.bindValue(":type",    ui->combo_type->currentText());
-    q.bindValue(":idbois",  idBois);
-    q.bindValue(":longueur",vL); q.bindValue(":largeur",vW); q.bindValue(":hauteur",vH);
-    q.bindValue(":date",    ui->de_date_creation->date().toString("yyyy-MM-dd"));
-    q.bindValue(":creepar", ui->le_creepar->text().trimmed());
+    Modele m(-1,
+             ui->le_nom_modele->text().trimmed(),
+             ui->combo_type->currentText(),
+             QString::number(idBois),  // bois passe en QString
+             ui->le_longueur->text().trimmed(),
+             ui->le_largeur->text().trimmed(),
+             ui->le_hauteur->text().trimmed(),
+             ui->le_creepar->text().trimmed(),
+             ui->de_date_creation->date());
 
-    if (q.exec()) { msgInfo(this,"Succes","Modele ajoute !"); envoyerModificationArduino("MODL", "AJOUT", 0, ui->le_nom_modele->text()); reinitialiserFormulaire(); chargerTableauModeles(); }
-    else msgErreur(this,"Erreur INSERT",q.lastError().text());
-
+    if (m.ajouter()) {
+        msgInfo(this, "Succes", "Modele ajoute !");
+        envoyerModificationArduino("MODL", "AJOUT", 0, ui->le_nom_modele->text());
+        reinitialiserFormulaire();
+        chargerTableauModeles();
+    } else {
+        msgErreur(this, "Erreur INSERT", "Impossible d'ajouter le modele.");
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-//  MODELES — MODIFIER  (UPDATE MODELE)
+//  MODELES — MODIFIER
 // ═══════════════════════════════════════════════════════════════════════
 void MainWindow::on_btn_modifier_modele_clicked()
 {
-    if (m_idSelectionne<=0) { msgWarn(this,"Aucune selection","Selectionnez une ligne."); return; }
+    if (m_idSelectionne <= 0) {
+        msgWarn(this, "Aucune selection", "Selectionnez une ligne.");
+        return;
+    }
     if (!validerFormulaire()) return;
-
-    bool okL,okW,okH;
-    double vL=ui->le_longueur->text().toDouble(&okL);
-    double vW=ui->le_largeur->text().toDouble(&okW);
-    double vH=ui->le_hauteur->text().toDouble(&okH);
-    Q_UNUSED(okL) Q_UNUSED(okW) Q_UNUSED(okH)
 
     bool okBois = false;
     int idBois = ui->le_id_bois->text().toInt(&okBois);
-    if (!okBois) { msgWarn(this,"Erreur","L'ID Bois doit être un nombre valide."); return; }
+    if (!okBois) {
+        msgWarn(this, "Erreur", "L'ID Bois doit etre un nombre valide.");
+        return;
+    }
 
-    QSqlQuery u(db());
-    u.prepare(
-        "UPDATE MODELE SET NOM=:nom, TYPE=:type, IDBOIS=:idbois, "
-        "LONGUEUR=:longueur, LARGEUR=:largeur, HAUTEUR=:hauteur, "
-        "DATECREATION=TO_DATE(:date,'YYYY-MM-DD'), CREEPAR=:creepar "
-        "WHERE IDMODELE=:id");
-    u.bindValue(":nom",     ui->le_nom_modele->text().trimmed());
-    u.bindValue(":type",    ui->combo_type->currentText());
-    u.bindValue(":idbois",  idBois);
-    u.bindValue(":longueur",vL); u.bindValue(":largeur",vW); u.bindValue(":hauteur",vH);
-    u.bindValue(":date",    ui->de_date_creation->date().toString("yyyy-MM-dd"));
-    u.bindValue(":creepar", ui->le_creepar->text().trimmed());
-    u.bindValue(":id",      m_idSelectionne);
+    Modele m(m_idSelectionne,
+             ui->le_nom_modele->text().trimmed(),
+             ui->combo_type->currentText(),
+             QString::number(idBois),
+             ui->le_longueur->text().trimmed(),
+             ui->le_largeur->text().trimmed(),
+             ui->le_hauteur->text().trimmed(),
+             ui->le_creepar->text().trimmed(),
+             ui->de_date_creation->date());
 
-    if (u.exec()) { msgInfo(this,"Succes","Modele modifie !"); envoyerModificationArduino("MODL", "MOD", m_idSelectionne, ui->le_nom_modele->text()); reinitialiserFormulaire(); chargerTableauModeles(); }
-    else msgErreur(this,"Erreur UPDATE",u.lastError().text());
+    if (m.modifier()) {
+        msgInfo(this, "Succes", "Modele modifie !");
+        envoyerModificationArduino("MODL", "MOD", m_idSelectionne, ui->le_nom_modele->text());
+        reinitialiserFormulaire();
+        chargerTableauModeles();
+    } else {
+        msgErreur(this, "Erreur UPDATE", "Impossible de modifier le modele.");
+    }
 }
+
 // ═══════════════════════════════════════════════════════════════════════
-//  MODELES — SUPPRIMER  (DELETE FROM MODELE)
+//  MODELES — SUPPRIMER
 // ═══════════════════════════════════════════════════════════════════════
 void MainWindow::on_btn_supprimer_modele_clicked()
 {
-    if (m_idSelectionne<=0) { msgWarn(this,"Aucune selection","Cliquez sur une ligne."); return; }
-    if (msgQuestion(this,"Confirmation",
-                    QString("Supprimer le modele ID %1 ?").arg(m_idSelectionne))!=QMessageBox::Yes) return;
-    QSqlQuery q(db());
-    q.prepare("DELETE FROM MODELE WHERE IDMODELE=:id");
-    q.bindValue(":id",m_idSelectionne);
-    if (q.exec()) { msgInfo(this,"Succes","Modele supprime !"); envoyerModificationArduino("MODL", "SUPP", m_idSelectionne, "SUPPRIME"); reinitialiserFormulaire(); chargerTableauModeles(); }
-    else msgErreur(this,"Erreur DELETE",q.lastError().text());
+    if (m_idSelectionne <= 0) {
+        msgWarn(this, "Aucune selection", "Cliquez sur une ligne.");
+        return;
+    }
+    if (msgQuestion(this, "Confirmation",
+                    QString("Supprimer le modele ID %1 ?").arg(m_idSelectionne)) != QMessageBox::Yes)
+        return;
+
+    Modele m;
+    if (m.supprimer(m_idSelectionne)) {
+        msgInfo(this, "Succes", "Modele supprime !");
+        envoyerModificationArduino("MODL", "SUPP", m_idSelectionne, "SUPPRIME");
+        reinitialiserFormulaire();
+        chargerTableauModeles();
+    } else {
+        msgErreur(this, "Erreur DELETE", "Impossible de supprimer le modele.");
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -1524,52 +1536,75 @@ void MainWindow::on_btn_supprimer_modele_clicked()
 // ═══════════════════════════════════════════════════════════════════════
 void MainWindow::on_btn_rechercher_modele_clicked()
 {
-    QString filtre=ui->rech_6->text().trimmed();
-    if (filtre.isEmpty()) { chargerTableauModeles(); return; }
+    QString filtre = ui->rech_6->text().trimmed();
+    if (filtre.isEmpty()) {
+        chargerTableauModeles();
+        return;
+    }
+
     ui->table_modeles->setRowCount(0);
+
     QSqlQuery q(db());
     q.prepare(
-        "SELECT IDMODELE, NOM, TYPE, IDBOIS, LONGUEUR, LARGEUR, HAUTEUR, "
-        "TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
-        "FROM MODELE "
-        "WHERE UPPER(NOM)    LIKE UPPER(:f1) "
-        "OR TO_CHAR(IDMODELE) LIKE :f2 "
-        "OR TO_CHAR(IDBOIS)   LIKE :f3 "
-        "OR UPPER(TYPE)      LIKE UPPER(:f4) "
-        "OR UPPER(CREEPAR)   LIKE UPPER(:f5) "
-        "ORDER BY IDMODELE");
-    QString pat="%"+filtre+"%";
-    q.bindValue(":f1",pat); q.bindValue(":f2",pat); q.bindValue(":f3",pat);
-    q.bindValue(":f4",pat); q.bindValue(":f5",pat);
-    if (!q.exec()) { msgErreur(this,"Erreur",q.lastError().text()); return; }
-    int row=0;
+        "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, LONGUEUR, LARGEUR, HAUTEUR, "
+        "       TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
+        "FROM HEDI.MODELE_BOIS "
+        "WHERE UPPER(NOM)        LIKE UPPER(:f1) "
+        "OR TO_CHAR(ID_MODELE)   LIKE :f2 "
+        "OR UPPER(TYPE_BOIS)     LIKE UPPER(:f3) "
+        "OR UPPER(TYPE)          LIKE UPPER(:f4) "
+        "OR UPPER(CREEPAR)       LIKE UPPER(:f5) "
+        "ORDER BY ID_MODELE");
+
+    QString pat = "%" + filtre + "%";
+    q.bindValue(":f1", pat);
+    q.bindValue(":f2", pat);
+    q.bindValue(":f3", pat);
+    q.bindValue(":f4", pat);
+    q.bindValue(":f5", pat);
+
+    if (!q.exec()) {
+        msgErreur(this, "Erreur", q.lastError().text());
+        return;
+    }
+
+    int row = 0;
     while (q.next()) {
         ui->table_modeles->insertRow(row);
-        for(int c=0;c<9;c++) ui->table_modeles->setItem(row,c,new QTableWidgetItem(q.value(c).toString()));
+        for (int c = 0; c < 9; c++)
+            ui->table_modeles->setItem(row, c, new QTableWidgetItem(q.value(c).toString()));
         row++;
     }
-    if (row==0) msgWarn(this,"Recherche",QString("Aucun modele pour : %1").arg(filtre));
+    ui->table_modeles->setColumnHidden(0, true);
+
+    if (row == 0)
+        msgWarn(this, "Recherche", QString("Aucun modele pour : %1").arg(filtre));
 }
 
 // ═══════════════════════════════════════════════════════════════════════
 //  MODELES — TRIER
 // ═══════════════════════════════════════════════════════════════════════
-void MainWindow::on_btn_tire_clicked()  // Une seule définition (ligne 620)
+void MainWindow::on_btn_tire_clicked()
 {
-    QMap<QString,QString> col;
-    col["Nom"] = "NOM";
-    col["ID Bois"] = "IDBOIS";
-    col["Type"] = "TYPE";
+    QMap<QString, QString> col;
+    col["Nom"]     = "NOM";
+    col["ID Bois"] = "TYPE_BOIS";
+    col["Type"]    = "TYPE";
+
     QString colSQL = col.value(ui->cb_critere_recherche_modele->currentText(), "NOM");
+
     ui->table_modeles->setRowCount(0);
+
     QSqlQuery q(db());
-    if (!q.exec(QString("SELECT IDMODELE, NOM, TYPE, IDBOIS, LONGUEUR, LARGEUR, HAUTEUR, "
-                        "TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
-                        "FROM MODELE ORDER BY %1").arg(colSQL)))
+    if (!q.exec(QString(
+            "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, LONGUEUR, LARGEUR, HAUTEUR, "
+            "       TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
+            "FROM HEDI.MODELE_BOIS ORDER BY %1").arg(colSQL)))
     {
         msgErreur(this, "Erreur tri", q.lastError().text());
         return;
     }
+
     int row = 0;
     while (q.next()) {
         ui->table_modeles->insertRow(row);
@@ -1587,15 +1622,23 @@ void MainWindow::on_btn_tire_clicked()  // Une seule définition (ligne 620)
 // ═══════════════════════════════════════════════════════════════════════
 void MainWindow::afficherStatistiques()
 {
-    if (!ui || !ui->placeholder_stats)
+    if (!ui || !ui->placeholder_stats_modele)
         return;
 
-    int W = ui->placeholder_stats->width();
-    int H = ui->placeholder_stats->height();
-    if (W < 100 || H < 100) {
-        W = 1200;
-        H = 620;
+    // Forcer les dimensions du widget parent
+    int W = ui->placeholder_stats_modele->width();
+    int H = ui->placeholder_stats_modele->height();
+
+    // Si pas encore rendu, prendre la taille du parent
+    if (W < 200 || H < 200) {
+        QWidget *parent = ui->placeholder_stats_modele->parentWidget();
+        if (parent) {
+            W = parent->width() - 20;
+            H = parent->height() - 20;
+        }
     }
+    if (W < 200) W = 1200;
+    if (H < 200) H = 620;
 
     QPixmap pix(W, H);
     pix.fill(QColor("#EFE2C8"));
@@ -1649,8 +1692,6 @@ void MainWindow::afficherStatistiques()
         p.drawText(QRect(x + 8, y + h - 18, w - 16, 14), Qt::AlignLeft | Qt::AlignVCenter, footer);
     };
 
-    struct StatRow { QString label; QString value; QString detail; QColor color; };
-
     int totalFab = 0;
     int enCoursFab = 0;
     int termineesFab = 0;
@@ -1699,7 +1740,7 @@ void MainWindow::afficherStatistiques()
         QList<QPair<QString, int>> items;
         int total = 0;
         QSqlQuery q(db());
-        if (q.exec("SELECT NVL(TYPE, 'Inconnu') AS TYPE_FAB, COUNT(*) AS NB FROM MODELE GROUP BY TYPE ORDER BY NB DESC")) {
+        if (q.exec("SELECT NVL(TYPE, 'Inconnu') AS TYPE_FAB, COUNT(*) AS NB FROM HEDI.MODELE_BOIS GROUP BY TYPE ORDER BY NB DESC")) {
             while (q.next()) {
                 const int nb = q.value("NB").toInt();
                 items << qMakePair(q.value("TYPE_FAB").toString(), nb);
@@ -1723,7 +1764,6 @@ void MainWindow::afficherStatistiques()
 
     const int pad = 14;
     const int gap = 10;
-    const int topBarH = 34;
     const int kpiY = 78;
     const int kpiH = 64;
     const int cardCount = 9;
@@ -1832,7 +1872,7 @@ void MainWindow::afficherStatistiques()
 
         QSqlQuery q(db());
         QMap<QString, int> byType;
-        if (q.exec("SELECT NVL(TYPE, 'Inconnu') AS TYPE_FAB, COUNT(*) AS NB FROM MODELE GROUP BY TYPE ORDER BY NB DESC")) {
+        if (q.exec("SELECT NVL(TYPE, 'Inconnu') AS TYPE_FAB, COUNT(*) AS NB FROM HEDI.MODELE_BOIS GROUP BY TYPE ORDER BY NB DESC")) {
             while (q.next())
                 byType.insert(q.value(0).toString(), q.value(1).toInt());
         }
@@ -1915,13 +1955,19 @@ void MainWindow::afficherStatistiques()
 
     p.end();
 
-    QLabel *lbl = ui->placeholder_stats->findChild<QLabel*>("lbl_chart");
+    QLabel *lbl = ui->placeholder_stats_modele->findChild<QLabel*>("lbl_chart");
     if (!lbl) {
-        lbl = new QLabel(ui->placeholder_stats);
+        lbl = new QLabel(ui->placeholder_stats_modele);
         lbl->setObjectName("lbl_chart");
-        lbl->setAlignment(Qt::AlignCenter);
+        lbl->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+        lbl->setScaledContents(true);
+
+        if (!ui->placeholder_stats_modele->layout()) {
+            QVBoxLayout *layout = new QVBoxLayout(ui->placeholder_stats_modele);
+            layout->setContentsMargins(0, 0, 0, 0);
+            layout->addWidget(lbl);
+        }
     }
-    lbl->setGeometry(0, 0, W, H);
     lbl->setPixmap(pix);
     lbl->show();
 }
@@ -1931,67 +1977,151 @@ void MainWindow::afficherStatistiques()
 // ═══════════════════════════════════════════════════════════════════════
 void MainWindow::on_btn_export_pdf_modele_clicked()
 {
-    int nbLignes=ui->table_modeles->rowCount();
-    if(nbLignes==0){msgWarn(this,"Export PDF","Le tableau est vide.");return;}
-    QString fichier=QFileDialog::getSaveFileName(this,"Enregistrer le PDF",
-                                                   "Modeles_"+QDate::currentDate().toString("yyyy-MM-dd")+".pdf",
-                                                   "Fichiers PDF (*.pdf)");
-    if(fichier.isEmpty()) return;
-    QPrinter printer(QPrinter::HighResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat); printer.setOutputFileName(fichier);
-    printer.setPageOrientation(QPageLayout::Landscape); printer.setPageSize(QPageSize::A4);
-    printer.setPageMargins(QMarginsF(10,10,10,10),QPageLayout::Millimeter);
-    QPainter p;
-    if(!p.begin(&printer)){msgErreur(this,"Erreur PDF","Impossible de creer le fichier.");return;}
-    const int W=static_cast<int>(printer.pageRect(QPrinter::DevicePixel).width());
-    const int H=static_cast<int>(printer.pageRect(QPrinter::DevicePixel).height());
-    const int dpi=printer.resolution(); const double mm=dpi/25.4;
-    const QColor cMarron(127,65,41),cBeige(237,224,200),cBeigeF(250,243,232);
-    const QColor cBlanc(255,255,255),cTexte(46,26,0),cBord(180,140,100);
-    const int hBandeau=static_cast<int>(14*mm),hSousBande=static_cast<int>(6*mm);
-    const int hEntete=static_cast<int>(8*mm),hLigne=static_cast<int>(6*mm);
-    const int hPied=static_cast<int>(5*mm),pad=static_cast<int>(1*mm);
-    QStringList headers={"ID","Nom","Type","ID Bois","Long.","Larg.","Haut.","Date","Cree par"};
-    QVector<double> pct={0.05,0.14,0.10,0.07,0.07,0.07,0.07,0.12,0.14};
-    const int nbCols=headers.size(); QVector<int> colW(nbCols); int sumW=0;
-    for(int c=0;c<nbCols-1;c++){colW[c]=static_cast<int>(pct[c]*W);sumW+=colW[c];} colW[nbCols-1]=W-sumW;
-
-    auto drawRow=[&](int y,const QStringList&cells,bool isHeader,bool odd){
-        int rh=isHeader?hEntete:hLigne; p.setPen(Qt::NoPen);
-        p.setBrush(isHeader?cBeige:(odd?cBlanc:cBeigeF)); p.drawRect(0,y,W,rh);
-        p.setPen(QPen(cBord,qMax(1,static_cast<int>(0.3*mm)))); p.setBrush(Qt::NoBrush); p.drawRect(0,y,W,rh);
-        int x=0; for(int c=0;c<qMin(cells.size(),nbCols);c++){
-            if(c>0){p.setPen(QPen(cBord,qMax(1,static_cast<int>(0.3*mm))));p.drawLine(x,y,x,y+rh);}
-            p.setPen(isHeader?cMarron:cTexte);
-            p.setFont(QFont("Arial",qMax(6,static_cast<int>(isHeader?dpi*0.09/72.0:dpi*0.085/72.0)),isHeader?QFont::Bold:QFont::Normal));
-            QRect rc(x+pad,y+pad,colW[c]-2*pad,rh-2*pad);
-            p.drawText(rc,Qt::AlignVCenter|Qt::AlignLeft|Qt::TextSingleLine,p.fontMetrics().elidedText(cells[c],Qt::ElideRight,rc.width()));
-            x+=colW[c];}
-    };
-    int numPage=0;
-    auto drawHeader=[&](bool first)->int{
-        numPage++; p.setPen(Qt::NoPen);p.setBrush(cMarron);p.drawRect(0,0,W,hBandeau);
-        p.setPen(Qt::white);p.setFont(QFont("Arial",qMax(8,static_cast<int>(dpi*0.16/72.0)),QFont::Bold));
-        p.drawText(QRect(0,0,W,hBandeau),Qt::AlignCenter,first?"Liste des Modeles":"Liste des Modeles (suite)");
-        p.setPen(Qt::NoPen);p.setBrush(QColor(200,170,130));p.drawRect(0,hBandeau,W,hSousBande);
-        p.setPen(cTexte);p.setFont(QFont("Arial",qMax(6,static_cast<int>(dpi*0.10/72.0))));
-        p.drawText(QRect(pad,hBandeau,W-2*pad,hSousBande),Qt::AlignVCenter|Qt::AlignLeft,
-                   first?QString("Genere le %1 | %2 modele(s)").arg(QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm")).arg(nbLignes):QString("Page %1").arg(numPage));
-        return hBandeau+hSousBande+pad;
-    };
-    auto drawFooter=[&](){
-        p.setPen(QColor(160,160,160));p.setFont(QFont("Arial",qMax(5,static_cast<int>(dpi*0.07/72.0))));
-        p.drawLine(0,H-hPied,W,H-hPied);
-        p.drawText(QRect(0,H-hPied+pad,W,hPied),Qt::AlignCenter,QString("Page %1 — Gestion Atelier Bois").arg(numPage));
-    };
-    int yPos=drawHeader(true); drawRow(yPos,headers,true,false); yPos+=hEntete;
-    for(int row=0;row<nbLignes;row++){
-        if(yPos+hLigne>H-hPied-2*pad){drawFooter();printer.newPage();yPos=drawHeader(false);drawRow(yPos,headers,true,false);yPos+=hEntete;}
-        QStringList cells; for(int c=0;c<nbCols;c++){QTableWidgetItem*it=ui->table_modeles->item(row,c);cells<<(it?it->text():"");}
-        drawRow(yPos,cells,false,row%2==0);yPos+=hLigne;
+    // Charger les donnees directement depuis la BDD
+    QSqlQuery query(db());
+    if (!query.exec(
+            "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, LONGUEUR, LARGEUR, HAUTEUR, "
+            "TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION, CREEPAR "
+            "FROM HEDI.MODELE_BOIS ORDER BY ID_MODELE"))
+    {
+        msgErreur(this, "Erreur PDF", "Impossible de charger les donnees:\n" + query.lastError().text());
+        return;
     }
-    drawFooter(); p.end();
-    msgInfo(this,"Export PDF reussi",QString("Fichier genere !\n\n%1").arg(fichier));
+
+    // Stocker toutes les lignes
+    QList<QStringList> lignes;
+    while (query.next()) {
+        QStringList row;
+        for (int c = 0; c < 9; c++)
+            row << query.value(c).toString();
+        lignes << row;
+    }
+
+    int nbLignes = lignes.size();
+    if (nbLignes == 0) {
+        msgWarn(this, "Export PDF", "Aucun modele dans la base de donnees.");
+        return;
+    }
+
+    QString fichier = QFileDialog::getSaveFileName(this, "Enregistrer le PDF",
+                                                    "Modeles_" + QDate::currentDate().toString("yyyy-MM-dd") + ".pdf",
+                                                    "Fichiers PDF (*.pdf)");
+    if (fichier.isEmpty()) return;
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fichier);
+    printer.setPageOrientation(QPageLayout::Landscape);
+    printer.setPageSize(QPageSize::A4);
+    printer.setPageMargins(QMarginsF(10, 10, 10, 10), QPageLayout::Millimeter);
+
+    QPainter p;
+    if (!p.begin(&printer)) {
+        msgErreur(this, "Erreur PDF", "Impossible de creer le fichier.");
+        return;
+    }
+
+    const int W = static_cast<int>(printer.pageRect(QPrinter::DevicePixel).width());
+    const int H = static_cast<int>(printer.pageRect(QPrinter::DevicePixel).height());
+    const int dpi = printer.resolution();
+    const double mm = dpi / 25.4;
+
+    const QColor cMarron(127, 65, 41), cBeige(237, 224, 200), cBeigeF(250, 243, 232);
+    const QColor cBlanc(255, 255, 255), cTexte(46, 26, 0), cBord(180, 140, 100);
+
+    const int hBandeau = static_cast<int>(14 * mm), hSousBande = static_cast<int>(6 * mm);
+    const int hEntete = static_cast<int>(8 * mm), hLigne = static_cast<int>(6 * mm);
+    const int hPied = static_cast<int>(5 * mm), pad = static_cast<int>(1 * mm);
+
+    QStringList headers = {"ID", "Nom", "Type", "Type Bois", "Long.", "Larg.", "Haut.", "Date", "Cree par"};
+    QVector<double> pct = {0.05, 0.14, 0.10, 0.10, 0.07, 0.07, 0.07, 0.12, 0.14};
+
+    const int nbCols = headers.size();
+    QVector<int> colW(nbCols);
+    int sumW = 0;
+    for (int c = 0; c < nbCols - 1; c++) {
+        colW[c] = static_cast<int>(pct[c] * W);
+        sumW += colW[c];
+    }
+    colW[nbCols - 1] = W - sumW;
+
+    auto drawRow = [&](int y, const QStringList &cells, bool isHeader, bool odd) {
+        int rh = isHeader ? hEntete : hLigne;
+        p.setPen(Qt::NoPen);
+        p.setBrush(isHeader ? cBeige : (odd ? cBlanc : cBeigeF));
+        p.drawRect(0, y, W, rh);
+        p.setPen(QPen(cBord, qMax(1, static_cast<int>(0.3 * mm))));
+        p.setBrush(Qt::NoBrush);
+        p.drawRect(0, y, W, rh);
+
+        int x = 0;
+        for (int c = 0; c < qMin(cells.size(), nbCols); c++) {
+            if (c > 0) {
+                p.setPen(QPen(cBord, qMax(1, static_cast<int>(0.3 * mm))));
+                p.drawLine(x, y, x, y + rh);
+            }
+            p.setPen(isHeader ? cMarron : cTexte);
+            p.setFont(QFont("Arial",
+                            qMax(6, static_cast<int>(isHeader ? dpi * 0.09 / 72.0 : dpi * 0.085 / 72.0)),
+                            isHeader ? QFont::Bold : QFont::Normal));
+            QRect rc(x + pad, y + pad, colW[c] - 2 * pad, rh - 2 * pad);
+            p.drawText(rc, Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine,
+                       p.fontMetrics().elidedText(cells[c], Qt::ElideRight, rc.width()));
+            x += colW[c];
+        }
+    };
+
+    int numPage = 0;
+    auto drawHeader = [&](bool first) -> int {
+        numPage++;
+        p.setPen(Qt::NoPen);
+        p.setBrush(cMarron);
+        p.drawRect(0, 0, W, hBandeau);
+        p.setPen(Qt::white);
+        p.setFont(QFont("Arial", qMax(8, static_cast<int>(dpi * 0.16 / 72.0)), QFont::Bold));
+        p.drawText(QRect(0, 0, W, hBandeau), Qt::AlignCenter,
+                   first ? "Liste des Modeles" : "Liste des Modeles (suite)");
+        p.setPen(Qt::NoPen);
+        p.setBrush(QColor(200, 170, 130));
+        p.drawRect(0, hBandeau, W, hSousBande);
+        p.setPen(cTexte);
+        p.setFont(QFont("Arial", qMax(6, static_cast<int>(dpi * 0.10 / 72.0))));
+        p.drawText(QRect(pad, hBandeau, W - 2 * pad, hSousBande), Qt::AlignVCenter | Qt::AlignLeft,
+                   first ? QString("Genere le %1 | %2 modele(s)")
+                               .arg(QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm"))
+                               .arg(nbLignes)
+                         : QString("Page %1").arg(numPage));
+        return hBandeau + hSousBande + pad;
+    };
+
+    auto drawFooter = [&]() {
+        p.setPen(QColor(160, 160, 160));
+        p.setFont(QFont("Arial", qMax(5, static_cast<int>(dpi * 0.07 / 72.0))));
+        p.drawLine(0, H - hPied, W, H - hPied);
+        p.drawText(QRect(0, H - hPied + pad, W, hPied), Qt::AlignCenter,
+                   QString("Page %1 - Gestion Atelier Bois").arg(numPage));
+    };
+
+    int yPos = drawHeader(true);
+    drawRow(yPos, headers, true, false);
+    yPos += hEntete;
+
+    for (int row = 0; row < nbLignes; row++) {
+        if (yPos + hLigne > H - hPied - 2 * pad) {
+            drawFooter();
+            printer.newPage();
+            yPos = drawHeader(false);
+            drawRow(yPos, headers, true, false);
+            yPos += hEntete;
+        }
+        drawRow(yPos, lignes[row], false, row % 2 == 0);
+        yPos += hLigne;
+    }
+
+    drawFooter();
+    p.end();
+
+    msgInfo(this, "Export PDF reussi", QString("Fichier genere !\n\n%1").arg(fichier));
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -4064,19 +4194,19 @@ void MainWindow::buildKPICards()
 
 void MainWindow::buildEtapeStatusPieChart()
 {
-    if (!ui || !ui->placeholder_stats)
+    if (!ui || !ui->placeholder_stats_modele)
         return;
 }
 
 void MainWindow::buildFabricationsByModeleBarChart()
 {
-    if (!ui || !ui->placeholder_couts)
+    if (!ui || !ui->placeholder_stats_modele)
         return;
 }
 
 void MainWindow::buildStatsInsightsPanel()
 {
-    if (!ui || !ui->placeholder_couts)
+    if (!ui || !ui->placeholder_stats_modele)
         return;
 }
 

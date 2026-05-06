@@ -368,7 +368,7 @@ QStatusBar {
      <string notr="true">background-color: transparent;</string>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="sqx"/>
     <widget class="QWidget" name="page_4">
@@ -1134,8 +1134,8 @@ QScrollArea &gt; QWidget &gt; QWidget { background-color: #F5ECD7; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>532</width>
-                <height>40</height>
+                <width>1187</width>
+                <height>190</height>
                </rect>
               </property>
               <layout class="QHBoxLayout" name="hl_timeline_steps">
@@ -2094,7 +2094,7 @@ QComboBox QAbstractItemView {
        </rect>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_gestion_modeles">
        <attribute name="title">
@@ -2532,7 +2532,7 @@ QComboBox QAbstractItemView {
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayoutStats">
         <item>
-         <widget class="QWidget" name="placeholder_stats" native="true">
+         <widget class="QWidget" name="placeholder_stats_modele" native="true">
           <property name="styleSheet">
            <string notr="true">background-color: #FFFFFF; border: 1px solid #B8956A; border-radius: 10px;</string>
           </property>

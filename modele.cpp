@@ -1,4 +1,4 @@
-#include "modele.h"
+﻿#include "modele.h"
 #include "connexion.h"
 #include <QSqlQuery>
 #include <QSqlError>
@@ -29,15 +29,14 @@ Modele::Modele(int id, const QString &nom, const QString &type,
 
 // ═══════════════════════════════════════════════════════════════════════
 //  ajouter()
-//  INSERT dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::ajouter()
 {
     QSqlQuery q(DB);
     q.prepare(
-        "INSERT INTO ADEM.MODELE_BOIS "
+        "INSERT INTO HEDI.MODELE_BOIS "
         "(ID_MODELE, NOM, TYPE, TYPE_BOIS, LONGUEUR, LARGEUR, HAUTEUR, CREEPAR, DATECREATION) "
-        "VALUES (ADEM.MODELE_BOIS_SEQ.NEXTVAL, :nom, :type, :bois, "
+        "VALUES (HEDI.MODELE_BOIS_SEQ.NEXTVAL, :nom, :type, :bois, "
         "        :longueur, :largeur, :hauteur, :creepar, TO_DATE(:date,'YYYY-MM-DD'))");
 
     q.bindValue(":nom",      nom);
@@ -58,13 +57,12 @@ bool Modele::ajouter()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  modifier()
-//  UPDATE dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::modifier()
 {
     QSqlQuery u(DB);
     u.prepare(
-        "UPDATE ADEM.MODELE_BOIS SET "
+        "UPDATE HEDI.MODELE_BOIS SET "
         "NOM=:nom, TYPE=:type, TYPE_BOIS=:bois, "
         "LONGUEUR=:longueur, LARGEUR=:largeur, HAUTEUR=:hauteur, "
         "CREEPAR=:creepar, DATECREATION=TO_DATE(:date,'YYYY-MM-DD') "
@@ -89,12 +87,11 @@ bool Modele::modifier()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  supprimer()
-//  DELETE dans ADEM.MODELE_BOIS via le Singleton Connection
 // ═══════════════════════════════════════════════════════════════════════
 bool Modele::supprimer(int idASupprimer)
 {
     QSqlQuery q(DB);
-    q.prepare("DELETE FROM ADEM.MODELE_BOIS WHERE ID_MODELE = :id");
+    q.prepare("DELETE FROM HEDI.MODELE_BOIS WHERE ID_MODELE = :id");
     q.bindValue(":id", idASupprimer);
 
     if (!q.exec()) {
@@ -106,7 +103,6 @@ bool Modele::supprimer(int idASupprimer)
 
 // ═══════════════════════════════════════════════════════════════════════
 //  afficher()
-//  SELECT tous les modeles, retourne un QSqlQueryModel
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::afficher()
 {
@@ -115,7 +111,7 @@ QSqlQueryModel* Modele::afficher()
         "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, "
         "       LONGUEUR, LARGEUR, HAUTEUR, CREEPAR, "
         "       TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION "
-        "FROM ADEM.MODELE_BOIS ORDER BY ID_MODELE",
+        "FROM HEDI.MODELE_BOIS ORDER BY ID_MODELE",
         DB);
 
     model->setHeaderData(0, Qt::Horizontal, "ID");
@@ -136,7 +132,6 @@ QSqlQueryModel* Modele::afficher()
 
 // ═══════════════════════════════════════════════════════════════════════
 //  rechercher()
-//  SELECT avec filtre LIKE selon critere (Nom / ID / Bois)
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::rechercher(const QString &critere, const QString &valeur)
 {
@@ -153,7 +148,7 @@ QSqlQueryModel* Modele::rechercher(const QString &critere, const QString &valeur
                   "SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, "
                   "       LONGUEUR, LARGEUR, HAUTEUR, CREEPAR, "
                   "       TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION "
-                  "FROM ADEM.MODELE_BOIS "
+                  "FROM HEDI.MODELE_BOIS "
                   "WHERE UPPER(%1) LIKE UPPER(:val) "
                   "ORDER BY ID_MODELE").arg(colSQL));
     q.bindValue(":val", "%" + valeur + "%");
@@ -179,7 +174,6 @@ QSqlQueryModel* Modele::rechercher(const QString &critere, const QString &valeur
 
 // ═══════════════════════════════════════════════════════════════════════
 //  trier()
-//  SELECT ORDER BY colonne choisie
 // ═══════════════════════════════════════════════════════════════════════
 QSqlQueryModel* Modele::trier(const QString &colonne)
 {
@@ -195,7 +189,7 @@ QSqlQueryModel* Modele::trier(const QString &colonne)
         QString("SELECT ID_MODELE, NOM, TYPE, TYPE_BOIS, "
                 "       LONGUEUR, LARGEUR, HAUTEUR, CREEPAR, "
                 "       TO_CHAR(DATECREATION,'DD/MM/YYYY') AS DATECREATION "
-                "FROM ADEM.MODELE_BOIS ORDER BY %1").arg(colSQL),
+                "FROM HEDI.MODELE_BOIS ORDER BY %1").arg(colSQL),
         DB);
 
     model->setHeaderData(0, Qt::Horizontal, "ID");
